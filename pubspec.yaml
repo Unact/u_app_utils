@@ -1,0 +1,54 @@
+name: u_app_utils
+description: Набор инструментов для приложений ЮНЭКТ
+publish_to: 'none'
+version: 0.0.1
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+
+dependencies:
+  barcode_widget: ^2.0.2
+  cached_network_image: ^3.2.3
+  camera: ^0.10.5
+  cross_file: ^0.3.3
+  dio: ^5.2.1
+  f_logs:
+    git:
+      url: git@github.com:jonik-dev/Flogs.git
+      ref: eb2c180
+  flutter:
+    sdk: flutter
+  flutter_secure_storage: ^8.0.0
+  fk_user_agent: ^2.1.0
+  intl: ^0.18.0
+  keyboard_actions: ^4.2.0
+  package_info_plus: ^4.0.2
+  path: ^1.8.3
+  path_provider: ^2.0.9
+  permission_handler: ^10.4.3
+  photo_view: ^0.14.0
+  qr_code_scanner: ^1.0.1
+  sentry_flutter: ^7.7.0
+  shared_preferences: ^2.2.1
+  soundpool: ^2.3.0
+  stack_trace: ^1.11.0
+  url_launcher: ^6.0.20
+  uuid: ^3.0.7
+  vibration: ^1.7.5
+
+dev_dependencies:
+  flutter_lints: ^2.0.1
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  assets:
+    - assets/beep.mp3
+  uses-material-design: true
+  plugin:
+    platforms:
+      android:
+        package: ru.unact.u_app_utils
+        pluginClass: UAppUtilsPlugin
+      ios:
+        pluginClass: UAppUtilsPlugin
