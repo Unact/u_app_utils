@@ -96,6 +96,8 @@ base class RenewApi {
     required String url,
     required String login
   }) async {
+    await _setApiData(url, '', '');
+
     resetGenerator() => { 'Authorization': '$authSchema login=$login' };
     await _request('v2/reset_password', 'POST', resetGenerator, authRefresh: false);
   }
