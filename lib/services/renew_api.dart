@@ -33,7 +33,7 @@ base class RenewApi {
     await _storage.delete(key: _kUrlKey);
     await _storage.delete(key: _kAccessTokenKey);
     await _storage.delete(key: _kRefreshTokenKey);
-    prefs.setBool(runBeforeKey, true);
+    await prefs.setBool(runBeforeKey, true);
   }
 
   Future<void> _setApiData(String url, String accessToken, String refreshToken) async {
