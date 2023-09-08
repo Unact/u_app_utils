@@ -42,7 +42,7 @@ class _NumTextFieldState extends State<NumTextField> {
         actions: [
           KeyboardActionsItem(
             focusNode: sumNode,
-            onTapAction: widget.onTap
+            onTapAction: () => sumNode.unfocus()
           )
         ]
       ),
@@ -56,10 +56,8 @@ class _NumTextFieldState extends State<NumTextField> {
         maxLines: 1,
         style: widget.style,
         decoration: widget.decoration,
-        onEditingComplete: () {
-          widget.onTap?.call();
-          sumNode.unfocus();
-        }
+        onEditingComplete: () => sumNode.unfocus(),
+        onChanged: (_) => widget.onTap?.call()
       )
     );
   }
