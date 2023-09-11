@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:barcode_widget/barcode_widget.dart' as bw;
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:camera/camera.dart' as camera;
 import 'package:cross_file/cross_file.dart';
@@ -40,7 +41,6 @@ part 'utils/parsing.dart';
 part 'utils/permissions.dart';
 
 part 'widgets/camera_view.dart';
-part 'widgets/entity_image.dart';
 part 'widgets/expanding_text.dart';
 part 'widgets/images_view.dart';
 part 'widgets/info_row.dart';

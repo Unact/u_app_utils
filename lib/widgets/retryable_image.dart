@@ -2,14 +2,20 @@ part of u_app_utils;
 
 class RetryableImage extends StatefulWidget {
   final String imageUrl;
-  final void Function()? onTap;
   final Color color;
+  final void Function()? onTap;
+  final bool cached;
+  final String? cacheKey;
+  final BaseCacheManager? cacheManager;
 
   RetryableImage({
     Key? key,
     required this.imageUrl,
     this.onTap,
-    this.color = Colors.blue
+    this.cached = false,
+    this.color = Colors.blue,
+    this.cacheKey,
+    this.cacheManager,
   }) : super(key: key);
 
   @override
@@ -21,10 +27,39 @@ class RetryableImageState extends State<RetryableImage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.cached) return buildRemote(context);
+
+    if (widget.cacheKey == null || widget.cacheManager == null) {
+      return SizedBox(width: 0, height: 0, child: Icon(Icons.error, color: widget.color));
+    }
+
+    return buildCached(context);
+  }
+
+  Widget buildCached(BuildContext context) {
+    return FutureBuilder(
+      future: widget.cacheManager!.getFileFromCache(widget.cacheKey!),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const SizedBox(width: 0, height: 0);
+
+        return GestureDetector(
+          onTap: widget.onTap,
+          child: Image.file(
+            snapshot.data!.file,
+            errorBuilder: (context, error, stackTrace) => Icon(Icons.error, color: widget.color)
+          ),
+        );
+      }
+    );
+  }
+
+  Widget buildRemote(BuildContext context) {
     return ValueListenableBuilder<String>(
       valueListenable: _rebuildNotifier,
       builder: (context, value, child) => CachedNetworkImage(
         key: ValueKey(value),
+        cacheManager: widget.cacheManager,
+        cacheKey: widget.cacheKey,
         imageUrl: widget.imageUrl,
         imageBuilder: (context, imageProvider) {
           return GestureDetector(
