@@ -199,8 +199,9 @@ base class RenewApi {
 
     return Dio(BaseOptions(
       baseUrl: url,
-      connectTimeout: const Duration(seconds: 100000),
-      receiveTimeout: const Duration(seconds: 100000),
+      connectTimeout: const Duration(minutes: 1),
+      sendTimeout: const Duration(minutes: 10),
+      receiveTimeout: const Duration(minutes: 10),
       headers: headers,
       contentType: Headers.jsonContentType,
       responseType: ResponseType.json,
