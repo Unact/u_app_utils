@@ -233,6 +233,7 @@ class ScanViewState extends State<ScanView> {
                 BarcodeFormat.qrcode,
                 BarcodeFormat.code128,
                 BarcodeFormat.ean13,
+                BarcodeFormat.itf,
                 BarcodeFormat.dataMatrix
               ],
               overlay: QrScannerOverlayShape(
