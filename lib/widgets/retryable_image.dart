@@ -1,6 +1,8 @@
 part of u_app_utils;
 
 class RetryableImage extends StatefulWidget {
+  final double? width;
+  final double? height;
   final String imageUrl;
   final Color color;
   final void Function()? onTap;
@@ -11,6 +13,8 @@ class RetryableImage extends StatefulWidget {
   RetryableImage({
     Key? key,
     required this.imageUrl,
+    this.width,
+    this.height,
     this.onTap,
     this.cached = false,
     this.color = Colors.blue,
@@ -30,7 +34,7 @@ class RetryableImageState extends State<RetryableImage> {
     if (!widget.cached) return buildRemote(context);
 
     if (widget.cacheKey == null || widget.cacheManager == null) {
-      return SizedBox(width: 0, height: 0, child: Icon(Icons.error, color: widget.color));
+      return SizedBox(width: widget.width, height: widget.height, child: Icon(Icons.error, color: widget.color));
     }
 
     return buildCached(context);
@@ -46,6 +50,8 @@ class RetryableImageState extends State<RetryableImage> {
           onTap: widget.onTap,
           child: Image.file(
             snapshot.data!.file,
+            width: widget.width,
+            height: widget.height,
             errorBuilder: (context, error, stackTrace) => Icon(Icons.error, color: widget.color)
           ),
         );
@@ -64,7 +70,11 @@ class RetryableImageState extends State<RetryableImage> {
         imageBuilder: (context, imageProvider) {
           return GestureDetector(
             onTap: widget.onTap,
-            child: Container(decoration: BoxDecoration(image: DecorationImage(image: imageProvider)))
+            child: Container(
+              width: widget.width,
+              height: widget.height,
+              decoration: BoxDecoration(image: DecorationImage(image: imageProvider))
+            )
           );
         },
         placeholder: (context, url) => Center(
