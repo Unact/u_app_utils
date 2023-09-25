@@ -25,7 +25,7 @@ class InfoRow extends StatelessWidget {
           Flexible(
             flex: titleFlex,
             child: SizedBox(
-              height: 48,
+              height: 60,
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: SingleChildScrollView(child: title)
@@ -35,7 +35,7 @@ class InfoRow extends StatelessWidget {
           Flexible(
             flex: trailingFlex,
             child: SizedBox(
-              height: 48,
+              height: 60,
               child: Align(
                 alignment: Alignment.centerRight,
                 child: SingleChildScrollView(child: trailing)

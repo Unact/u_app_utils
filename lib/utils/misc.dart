@@ -91,4 +91,10 @@ class Misc {
       onError?.call();
     }
   }
+
+  static Future<String> get fullVersion async {
+    final info = await PackageInfo.fromPlatform();
+
+    return '${info.version}+${info.buildNumber}';
+  }
 }
