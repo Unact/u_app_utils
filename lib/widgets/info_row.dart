@@ -6,15 +6,30 @@ class InfoRow extends StatelessWidget {
   final Widget? trailing;
   final int titleFlex;
   final int trailingFlex;
+  final Alignment titleAlignment;
+  final Alignment trailingAlignment;
+
+  InfoRow.page({
+    required this.title,
+    this.trailing,
+    super.key
+  }) :
+    padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+    titleFlex = 1,
+    titleAlignment = Alignment.centerLeft,
+    trailingFlex = 2,
+    trailingAlignment = Alignment.centerLeft;
 
   InfoRow({
-    Key? key,
+    super.key,
     this.padding = const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
     required this.title,
     this.trailing,
     this.titleFlex = 1,
-    this.trailingFlex = 1
-  }) : super(key: key);
+    this.trailingFlex = 1,
+    this.titleAlignment = Alignment.centerLeft,
+    this.trailingAlignment = Alignment.centerRight
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +42,7 @@ class InfoRow extends StatelessWidget {
             child: SizedBox(
               height: 60,
               child: Align(
-                alignment: Alignment.centerLeft,
+                alignment: titleAlignment,
                 child: SingleChildScrollView(child: title)
               )
             ),
@@ -37,7 +52,7 @@ class InfoRow extends StatelessWidget {
             child: SizedBox(
               height: 60,
               child: Align(
-                alignment: Alignment.centerRight,
+                alignment: trailingAlignment,
                 child: SingleChildScrollView(child: trailing)
               )
             )
