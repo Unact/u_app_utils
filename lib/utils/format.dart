@@ -1,9 +1,9 @@
 part of u_app_utils;
 
 class Format {
-  static String numberStr(double? number, [bool simple = false]) {
+  static String numberStr(double? number, {bool simple = false, String format = '#,##0.00'}) {
     return number != null ?
-      (simple ? number.toString().replaceAll('.', ',') : NumberFormat("#,##0.00", "ru_RU").format(number)) :
+      (simple ? number.toString().replaceAll('.', ',') : NumberFormat(format, 'ru_RU').format(number)) :
       '';
   }
 

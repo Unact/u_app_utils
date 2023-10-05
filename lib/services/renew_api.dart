@@ -237,7 +237,9 @@ base class RenewApi {
         e.error is SocketException ||
         e.error is HandshakeException ||
         e.error is HttpException ||
-        e.type == DioExceptionType.connectionTimeout
+        e.type == DioExceptionType.connectionTimeout ||
+        e.type == DioExceptionType.sendTimeout ||
+        e.type == DioExceptionType.receiveTimeout
       ) {
         throw ApiConnException();
       }
