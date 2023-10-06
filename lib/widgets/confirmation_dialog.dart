@@ -14,8 +14,8 @@ class ConfirmationDialog {
         title: const Text('Внимание'),
         content: Text(confirmationText),
         actions: [
-          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Да')),
-          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Нет'))
+          TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Нет')),
+          TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Да'))
         ]
       )
     );

@@ -171,7 +171,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
             }
 
             Navigator.of(context).pop();
-          } on CameraException catch (e) {
+          } on camera.CameraException catch (e) {
             widget.onError('Произошла ошибка: ${e.code} - ${e.description ?? ''}');
           } on CompressError catch (e) {
             widget.onError('Произошла ошибка: ${e.message}');
