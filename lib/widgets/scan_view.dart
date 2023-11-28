@@ -232,6 +232,7 @@ class ScanViewState extends State<ScanView> {
               formatsAllowed: const [
                 BarcodeFormat.qrcode,
                 BarcodeFormat.code128,
+                BarcodeFormat.ean8,
                 BarcodeFormat.ean13,
                 BarcodeFormat.itf,
                 BarcodeFormat.dataMatrix
