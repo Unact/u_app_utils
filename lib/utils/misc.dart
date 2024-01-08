@@ -18,19 +18,14 @@ class Misc {
     return isDebug;
   }
 
-  static Future<void> reportError(dynamic error, dynamic stackTrace) async {
-    Frame methodFrame = Trace.current().frames.length > 1 ? Trace.current().frames[1] : Trace.current().frames[0];
-
+  static void logError(dynamic error, StackTrace? stackTrace) {
     debugPrint(error.toString());
-    debugPrint(stackTrace.toString());
 
-    FLog.error(
-      methodName: methodFrame.member!.split('.')[1],
-      text: error.toString(),
-      exception: error,
-      stacktrace: stackTrace
-    );
+    FLog.error(text: error.toString(), exception: error, stacktrace: stackTrace);
+  }
 
+  static Future<void> reportError(dynamic error, StackTrace? stackTrace) async {
+    logError(error, stackTrace);
     await Sentry.captureException(error, stackTrace: stackTrace);
   }
 
@@ -59,7 +54,9 @@ class Misc {
   }
 
   static void showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message))
+    );
   }
 
   static Future<void> clearFiles(String folder, [Set<String> newRelFilePaths = const <String>{}]) async {

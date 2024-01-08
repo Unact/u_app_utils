@@ -86,7 +86,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
 
       if (!mounted) return;
       setState(() {});
-    } on CameraException catch(e) {
+    } on camera.CameraException catch(e) {
       switch (e.code) {
         case 'CameraAccessDenied':
           widget.onError('Не разрешена работа с камерой');
@@ -125,12 +125,23 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
             color: Colors.white,
             icon: const Icon(Icons.flash_on),
             onPressed:  () async {
-              if (_flashOn) {
-                _controller!.setFlashMode(camera.FlashMode.off);
-                _flashOn = false;
-              } else {
-                _controller!.setFlashMode(camera.FlashMode.torch);
-                _flashOn = true;
+              try {
+                if (_flashOn) {
+                  await _controller!.setFlashMode(camera.FlashMode.off);
+                  _flashOn = false;
+                } else {
+                  await _controller!.setFlashMode(camera.FlashMode.torch);
+                  _flashOn = true;
+                }
+              } on camera.CameraException catch(e) {
+                switch (e.code) {
+                  case 'setFlashModeFailed':
+                    widget.onError('Вспышка не поддерживается');
+                    break;
+                  default:
+                    widget.onError('Произошла ошибка: ${e.code} - ${e.description ?? ''}');
+                    break;
+                }
               }
             }
           ),
@@ -140,12 +151,12 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
             icon: const Icon(Icons.switch_camera),
             onPressed: () async {
               if (_frontCamera != null && _controller!.description != _frontCamera) {
-                _setCamera(_frontCamera!);
+                await _setCamera(_frontCamera!);
                 return;
               }
 
               if (_backCamera != null && _controller!.description != _backCamera) {
-                _setCamera(_backCamera!);
+                await _setCamera(_backCamera!);
                 return;
               }
             }

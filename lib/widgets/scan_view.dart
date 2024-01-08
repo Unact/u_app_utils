@@ -204,14 +204,14 @@ class ScanViewState extends State<ScanView> {
             color: Colors.white,
             icon: const Icon(Icons.flash_on),
             onPressed: () async {
-              try { _controller!.toggleFlash(); } on CameraException catch(_) {}
+              try { await _controller!.toggleFlash(); } on CameraException catch(_) {}
             }
           ),
           IconButton(
             color: Colors.white,
             icon: const Icon(Icons.switch_camera),
             onPressed: () async {
-              try { _controller!.flipCamera(); } on CameraException catch(_) {}
+              try { await _controller!.flipCamera(); } on CameraException catch(_) {}
             }
           ),
           !widget.showScanner ? null : IconButton(
