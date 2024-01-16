@@ -62,7 +62,7 @@ base class RenewApi {
     );
   }
 
-  bool get isLoggedIn => _accessToken != '';
+  bool get isLoggedIn => _url != '' && _accessToken != '';
 
   Map<String, String> Function() get _accessGenerator =>
     () => _accessToken.isEmpty ? {} : { 'Authorization': '$authSchema token=$_accessToken' };

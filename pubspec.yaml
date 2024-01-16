@@ -20,7 +20,10 @@ dependencies:
   flutter_cache_manager: ^3.3.1
   flutter_image_compress: ^2.0.3
   flutter_secure_storage: ^8.0.0
-  fk_user_agent: ^2.1.0
+  fk_user_agent:
+    git:
+      url: git@github.com:xkxeeshankhan/fk_user_agent.git
+      ref: '2168301'
   intl: ^0.18.0
   keyboard_actions: ^4.2.0
   package_info_plus: ^4.0.2
