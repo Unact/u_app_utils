@@ -11,6 +11,7 @@ dependencies:
   cached_network_image: ^3.2.3
   camera: ^0.10.5
   dio: ^5.2.1
+  easy_refresh: ^3.3.2
   f_logs:
     git:
       url: git@github.com:jonik-dev/Flogs.git

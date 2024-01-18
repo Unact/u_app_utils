@@ -11,9 +11,9 @@ class ProgressDialog {
   Future<void> open() async {
     DialogRoute route = DialogRoute(
       context: _context,
-      builder: (_) => WillPopScope(
-        onWillPop: () async => false,
-        child: const Center(child: CircularProgressIndicator())
+      builder: (_) => const PopScope(
+        canPop: false,
+        child: Center(child: CircularProgressIndicator())
       ),
       barrierDismissible: false
     );
