@@ -41,21 +41,14 @@ class RetryableImageState extends State<RetryableImage> {
   }
 
   Widget buildCached(BuildContext context) {
-    return FutureBuilder(
-      future: widget.cacheManager!.getFileFromCache(widget.cacheKey!),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return const SizedBox(width: 0, height: 0);
-
-        return GestureDetector(
-          onTap: widget.onTap,
-          child: Image.file(
-            snapshot.data!.file,
-            width: widget.width,
-            height: widget.height,
-            errorBuilder: (context, error, stackTrace) => Icon(Icons.error, color: widget.color)
-          ),
-        );
-      }
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: Image(
+        image: CachedImageProvider(widget.cacheKey!, widget.cacheManager!),
+        width: widget.width,
+        height: widget.height,
+        errorBuilder: (context, error, stackTrace) => Icon(Icons.error, color: widget.color)
+      ),
     );
   }
 

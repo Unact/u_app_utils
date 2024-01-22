@@ -3,6 +3,7 @@ library u_app_utils;
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:barcode_widget/barcode_widget.dart' as bw;
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -14,6 +15,7 @@ import 'package:f_logs/f_logs.dart';
 import 'package:fk_user_agent/fk_user_agent.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -31,6 +33,8 @@ import 'package:stack_trace/stack_trace.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 import 'package:vibration/vibration.dart';
+
+part 'image_provider/cached_image_provider.dart';
 
 part 'services/renew_api.dart';
 
