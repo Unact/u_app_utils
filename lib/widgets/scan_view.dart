@@ -132,7 +132,7 @@ class ScanViewState extends State<ScanView> {
     return _scanMode == _ScanMode.camera ? _buildCameraView(context) : _buildScannerView(context);
   }
 
-  String? translateChar(RawKeyEvent rawKeyEvent) {
+  String? translateChar(KeyEvent rawKeyEvent) {
     return _keyCodeMap[rawKeyEvent.physicalKey];
   }
 
@@ -146,11 +146,11 @@ class ScanViewState extends State<ScanView> {
   }
 
   Widget _buildScannerView(BuildContext context) {
-    return RawKeyboardListener(
+    return KeyboardListener(
       autofocus: false,
       focusNode: FocusNode(),
-      onKey: (RawKeyEvent rawKeyEvent) async {
-        if (rawKeyEvent is! RawKeyUpEvent) {
+      onKeyEvent: (KeyEvent rawKeyEvent) async {
+        if (rawKeyEvent is! KeyUpEvent) {
           _textEditingController.text = _textEditingController.text + (translateChar(rawKeyEvent) ?? '');
         }
 
