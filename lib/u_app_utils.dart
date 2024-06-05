@@ -25,14 +25,13 @@ import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view_gallery.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:soundpool/soundpool.dart';
 import 'package:stack_trace/stack_trace.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
-import 'package:vibration/vibration.dart';
+
+export 'widgets/scan_view.dart';
 
 part 'image_provider/cached_image_provider.dart';
 
@@ -54,5 +53,4 @@ part 'widgets/qr_dialog.dart';
 part 'widgets/refreshable.dart';
 part 'widgets/progress_dialog.dart';
 part 'widgets/retryable_image.dart';
-part 'widgets/scan_view.dart';
 part 'widgets/sum_text_field.dart';

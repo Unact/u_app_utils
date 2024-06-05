@@ -27,12 +27,12 @@ dependencies:
       ref: '2168301'
   intl: ^0.18.0
   keyboard_actions: ^4.2.0
+  mobile_scanner: ^5.1.1
   package_info_plus: ^4.0.2
   path: ^1.8.3
   path_provider: ^2.0.9
   permission_handler: ^10.4.3
   photo_view: ^0.14.0
-  qr_code_scanner: ^1.0.1
   sentry_flutter: ^7.7.0
   shared_preferences: ^2.2.1
   soundpool: ^2.3.0
