@@ -1,4 +1,5 @@
-part of u_app_utils;
+import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view_gallery.dart';
 
 class ImagesView extends StatefulWidget {
   final List<Widget> images;

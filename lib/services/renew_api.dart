@@ -1,4 +1,10 @@
-part of u_app_utils;
+import 'dart:io';
+
+import 'package:dio/dio.dart';
+import 'package:fk_user_agent/fk_user_agent.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 base class RenewApi {
   static const String runBeforeKey = 'Api.hasRunBefore';

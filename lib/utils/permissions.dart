@@ -1,4 +1,6 @@
-part of u_app_utils;
+import 'dart:io';
+
+import 'package:permission_handler/permission_handler.dart';
 
 class Permissions {
   static Future<bool> hasBluetoothPermission() async {

@@ -1,4 +1,7 @@
-part of u_app_utils;
+import 'package:camera/camera.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 
 class CameraView extends StatefulWidget {
   final bool compress;
@@ -19,11 +22,11 @@ class CameraView extends StatefulWidget {
 class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   static const int _kMaxFileSize = 1024 * 1024 * 2;
 
-  List<camera.CameraDescription> _cameras = [];
-  camera.CameraController? _controller;
+  List<CameraDescription> _cameras = [];
+  CameraController? _controller;
   bool _flashOn = false;
-  camera.CameraDescription? _backCamera;
-  camera.CameraDescription? _frontCamera;
+  CameraDescription? _backCamera;
+  CameraDescription? _frontCamera;
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
@@ -35,11 +38,11 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
     if (state == AppLifecycleState.inactive) {
       _controller!.dispose();
     } else if (state == AppLifecycleState.resumed) {
-      _controller = camera.CameraController(
+      _controller = CameraController(
         _controller!.description,
-        camera.ResolutionPreset.medium,
+        ResolutionPreset.medium,
         enableAudio: false,
-        imageFormatGroup: camera.ImageFormatGroup.yuv420
+        imageFormatGroup: ImageFormatGroup.yuv420
       );
     }
   }
@@ -51,7 +54,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   }
 
   Future<void> _initCameras() async {
-    _cameras = await camera.availableCameras();
+    _cameras = await availableCameras();
 
     if (_cameras.isEmpty) {
       widget.onError('Нет доступных камер');
@@ -60,8 +63,8 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
       return;
     }
 
-    final backCameras = _cameras.where((el) => el.lensDirection == camera.CameraLensDirection.back);
-    final frontCameras = _cameras.where((el) => el.lensDirection == camera.CameraLensDirection.front);
+    final backCameras = _cameras.where((el) => el.lensDirection == CameraLensDirection.back);
+    final frontCameras = _cameras.where((el) => el.lensDirection == CameraLensDirection.front);
 
     _backCamera = backCameras.isNotEmpty ? backCameras.first : null;
     _frontCamera = frontCameras.isNotEmpty ? frontCameras.first : null;
@@ -73,12 +76,12 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
     _setCamera(_backCamera ?? _cameras[0]);
   }
 
-  Future<void> _setCamera(camera.CameraDescription cameraDescription) async {
-    _controller = camera.CameraController(
+  Future<void> _setCamera(CameraDescription cameraDescription) async {
+    _controller = CameraController(
       cameraDescription,
-      camera.ResolutionPreset.medium,
+      ResolutionPreset.medium,
       enableAudio: false,
-      imageFormatGroup: camera.ImageFormatGroup.yuv420
+      imageFormatGroup: ImageFormatGroup.yuv420
     );
 
     try {
@@ -86,7 +89,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
 
       if (!mounted) return;
       setState(() {});
-    } on camera.CameraException catch(e) {
+    } on CameraException catch(e) {
       switch (e.code) {
         case 'CameraAccessDenied':
           widget.onError('Не разрешена работа с камерой');
@@ -113,7 +116,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
     if (scale < 1) scale = 1 / scale;
 
     Widget body = initialized ?
-      Transform.scale(scale: scale, child: Center(child: camera.CameraPreview(_controller!))) :
+      Transform.scale(scale: scale, child: Center(child: CameraPreview(_controller!))) :
       Container();
 
     return Scaffold(
@@ -127,13 +130,13 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
             onPressed:  () async {
               try {
                 if (_flashOn) {
-                  await _controller!.setFlashMode(camera.FlashMode.off);
+                  await _controller!.setFlashMode(FlashMode.off);
                   _flashOn = false;
                 } else {
-                  await _controller!.setFlashMode(camera.FlashMode.torch);
+                  await _controller!.setFlashMode(FlashMode.torch);
                   _flashOn = true;
                 }
-              } on camera.CameraException catch(e) {
+              } on CameraException catch(e) {
                 switch (e.code) {
                   case 'setFlashModeFailed':
                     widget.onError('Вспышка не поддерживается');
@@ -182,7 +185,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
             }
 
             Navigator.of(context).pop();
-          } on camera.CameraException catch (e) {
+          } on CameraException catch (e) {
             widget.onError('Произошла ошибка: ${e.code} - ${e.description ?? ''}');
           } on CompressError catch (e) {
             widget.onError('Произошла ошибка: ${e.message}');

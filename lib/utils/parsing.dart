@@ -1,5 +1,3 @@
-part of u_app_utils;
-
 class Parsing {
   static final List<dynamic> _trueValues = ['true', true, '1', 1];
 

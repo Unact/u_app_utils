@@ -1,4 +1,4 @@
-part of u_app_utils;
+import 'package:flutter/material.dart';
 
 class InfoRow extends StatelessWidget {
   final EdgeInsets padding;

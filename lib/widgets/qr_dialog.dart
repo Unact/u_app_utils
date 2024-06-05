@@ -1,4 +1,5 @@
-part of u_app_utils;
+import 'package:barcode_widget/barcode_widget.dart' as bw;
+import 'package:flutter/material.dart';
 
 class QRDialog {
   final BuildContext _context;

@@ -1,4 +1,9 @@
-part of u_app_utils;
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:easy_refresh/easy_refresh.dart';
+
+import '../utils/format.dart';
 
 class Refreshable extends StatefulWidget {
   final Widget Function(BuildContext, ScrollPhysics) childBuilder;

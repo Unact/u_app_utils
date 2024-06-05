@@ -1,4 +1,4 @@
-part of u_app_utils;
+import 'package:flutter/material.dart';
 
 class ExpandingText extends StatefulWidget {
   final String content;

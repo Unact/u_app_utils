@@ -1,4 +1,4 @@
-part of u_app_utils;
+import 'dart:math';
 
 // Taken from https://github.com/dart-lang/sdk/issues/8575#issuecomment-704111947
 extension DoubleRounding on double {

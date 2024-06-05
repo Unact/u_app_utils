@@ -1,4 +1,4 @@
-part of u_app_utils;
+import 'package:intl/intl.dart';
 
 class Format {
   static String numberStr(double? number, {bool simple = false, String format = '#,##0.00'}) {

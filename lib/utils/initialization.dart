@@ -1,4 +1,7 @@
-part of u_app_utils;
+import 'dart:async';
+
+import 'package:f_logs/f_logs.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 class Initialization {
   static void intializeFlogs({

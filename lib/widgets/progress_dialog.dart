@@ -1,4 +1,6 @@
-part of u_app_utils;
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 
 class ProgressDialog {
   Completer<void> _dialogCompleter = Completer();

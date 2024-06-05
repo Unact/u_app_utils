@@ -1,4 +1,14 @@
-part of u_app_utils;
+import 'dart:async';
+import 'dart:io';
+
+import 'package:f_logs/f_logs.dart';
+import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:stack_trace/stack_trace.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Misc {
   static Future<void> callPhone(phone, {Function? onError}) async {

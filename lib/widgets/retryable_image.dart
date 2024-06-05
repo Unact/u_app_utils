@@ -1,4 +1,11 @@
-part of u_app_utils;
+import 'dart:ui';
+
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:uuid/uuid.dart';
 
 class RetryableImage extends StatefulWidget {
   final double? width;
@@ -44,7 +51,7 @@ class RetryableImageState extends State<RetryableImage> {
     return GestureDetector(
       onTap: widget.onTap,
       child: Image(
-        image: CachedImageProvider(widget.cacheKey!, widget.cacheManager!),
+        image: _CachedImageProvider(widget.cacheKey!, widget.cacheManager!),
         width: widget.width,
         height: widget.height,
         errorBuilder: (context, error, stackTrace) => Icon(Icons.error, color: widget.color)
@@ -83,4 +90,78 @@ class RetryableImageState extends State<RetryableImage> {
       )
     );
   }
+}
+
+@immutable
+class _CachedImageProvider extends ImageProvider<_CachedImageProvider> {
+  const _CachedImageProvider(
+    this.cacheKey,
+    this.cacheManager
+  );
+
+  final BaseCacheManager cacheManager;
+
+  final String cacheKey;
+
+  @override
+  Future<_CachedImageProvider> obtainKey(
+    ImageConfiguration configuration,
+  ) {
+    return SynchronousFuture<_CachedImageProvider>(this);
+  }
+
+  @override
+  ImageStreamCompleter loadImage(_CachedImageProvider key, ImageDecoderCallback decode) {
+    return MultiImageStreamCompleter(
+      codec: _loadImageAsync(decode),
+      scale: 1,
+      informationCollector: () sync* {
+        yield DiagnosticsProperty<ImageProvider>(
+          'Image provider: $this \n Image key: $key',
+          this,
+          style: DiagnosticsTreeStyle.errorProperty,
+        );
+      },
+    );
+  }
+
+  Stream<Codec> _loadImageAsync(ImageDecoderCallback decode) {
+    return _load(
+      cacheKey,
+      (bytes) async {
+        final buffer = await ImmutableBuffer.fromUint8List(bytes);
+        return decode(buffer);
+      },
+      cacheManager
+    );
+  }
+
+  Stream<Codec> _load(
+    String cacheKey,
+    Future<Codec> Function(Uint8List) decode,
+    BaseCacheManager cacheManager,
+  ) async* {
+    final result = await cacheManager.getFileFromCache(cacheKey);
+
+    if (result is FileInfo) {
+      final file = result.file;
+      final bytes = await file.readAsBytes();
+      final decoded = await decode(bytes);
+      yield decoded;
+    }
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (other is _CachedImageProvider) {
+      return (cacheKey == other.cacheKey);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => cacheKey.hashCode;
+
+  @override
+  String toString() => 'CachedImageProvider("$cacheKey")';
 }
