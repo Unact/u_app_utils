@@ -227,6 +227,14 @@ base class RenewApi {
         throw ServerException(statusCode);
       }
 
+      if (statusCode == 413) {
+        throw PayloadTooLargeException();
+      }
+
+      if (body is! Map) {
+        throw UnknownApiException('Не известная ошибка: $body', statusCode);
+      }
+
       if (statusCode == 401) {
         throw AuthException(body['error']);
       }
@@ -240,13 +248,18 @@ base class RenewApi {
       }
     } else {
       if (
-        e.error is SocketException ||
-        e.error is HandshakeException ||
-        e.error is HttpException ||
-        e.error is TlsException ||
         e.type == DioExceptionType.connectionTimeout ||
         e.type == DioExceptionType.sendTimeout ||
         e.type == DioExceptionType.receiveTimeout
+      ) {
+        throw ApiConnTimeoutException();
+      }
+
+      if (
+        e.error is SocketException ||
+        e.error is HandshakeException ||
+        e.error is HttpException ||
+        e.error is TlsException
       ) {
         throw ApiConnException();
       }
@@ -271,10 +284,22 @@ class ServerException extends ApiException {
   ServerException(statusCode) : super('Нет связи с сервером', statusCode);
 }
 
+class ApiConnTimeoutException extends ApiException {
+  ApiConnTimeoutException() : super('Сервер не отвечает', 522);
+}
+
 class ApiConnException extends ApiException {
-  ApiConnException() : super('Нет связи', 503);
+  ApiConnException() : super('Не удается установить соединение с сервером', 503);
 }
 
 class VersionException extends ApiException {
   VersionException(errorMsg) : super(errorMsg, 410);
+}
+
+class PayloadTooLargeException extends ApiException {
+  PayloadTooLargeException() : super('Объем отправляемых данных слишком большой', 413);
+}
+
+class UnknownApiException extends ApiException {
+  UnknownApiException(errorMsg, statusCode) : super(errorMsg, statusCode);
 }
