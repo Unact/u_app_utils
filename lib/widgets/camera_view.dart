@@ -40,7 +40,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
     } else if (state == AppLifecycleState.resumed) {
       _controller = CameraController(
         _controller!.description,
-        ResolutionPreset.medium,
+        ResolutionPreset.veryHigh,
         enableAudio: false,
         imageFormatGroup: ImageFormatGroup.yuv420
       );
@@ -79,7 +79,7 @@ class _CameraViewState extends State<CameraView> with WidgetsBindingObserver {
   Future<void> _setCamera(CameraDescription cameraDescription) async {
     _controller = CameraController(
       cameraDescription,
-      ResolutionPreset.medium,
+      ResolutionPreset.veryHigh,
       enableAudio: false,
       imageFormatGroup: ImageFormatGroup.yuv420
     );
