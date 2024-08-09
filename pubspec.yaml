@@ -11,11 +11,11 @@ dependencies:
   cached_network_image: ^3.2.3
   camera: ^0.10.5
   dio: ^5.2.1
-  easy_refresh: ^3.3.2
+  easy_refresh: ^3.4.0
   f_logs:
     git:
       url: git@github.com:jonik-dev/Flogs.git
-      ref: eb2c180
+      ref: e618615
   flutter:
     sdk: flutter
   flutter_cache_manager: ^3.3.1
@@ -25,7 +25,7 @@ dependencies:
     git:
       url: git@github.com:xkxeeshankhan/fk_user_agent.git
       ref: '2168301'
-  intl: ^0.18.0
+  intl: ^0.19.0
   keyboard_actions: ^4.2.0
   mobile_scanner: ^5.1.1
   package_info_plus: ^4.0.2

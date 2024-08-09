@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:camera/camera.dart' as camera;
 import 'package:flutter/material.dart';
@@ -34,7 +33,7 @@ class ScanView extends StatefulWidget {
 class ScanViewState extends State<ScanView> {
   final GlobalKey _qrKey = GlobalKey();
   final MobileScannerController _controller = MobileScannerController(
-    detectionTimeoutMs: 2000,
+    detectionSpeed: DetectionSpeed.noDuplicates,
     formats: const [
       BarcodeFormat.qrCode,
       BarcodeFormat.code128,
@@ -48,6 +47,7 @@ class ScanViewState extends State<ScanView> {
   _ScanMode _scanMode = _ScanMode.scanner;
   bool _paused = false;
   bool _editingFinished = false;
+  final BarcodeScannerFieldFocusNode barcodeScannerFocusNode = BarcodeScannerFieldFocusNode();
   final TextEditingController _textEditingController = TextEditingController();
   static final List<PhysicalKeyboardKey> _finishKeys = [
     PhysicalKeyboardKey.enter,
@@ -180,6 +180,7 @@ class ScanViewState extends State<ScanView> {
           children: [
             Center(
               child: _BarcodeScannerField(
+                focusNode: barcodeScannerFocusNode,
                 controller: _textEditingController,
                 onChanged: (String changed) => _onEditingFinished()
               )
@@ -199,9 +200,6 @@ class ScanViewState extends State<ScanView> {
   }
 
   Widget _buildCameraView(BuildContext context) {
-    final double width = widget.barcodeMode ? 300 : 200;
-    final double height = widget.barcodeMode ? 150 : 200;
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -234,26 +232,6 @@ class ScanViewState extends State<ScanView> {
             child: MobileScanner(
               key: _qrKey,
               controller: _controller,
-              scanWindow: Rect.fromCenter(
-                center: MediaQuery.sizeOf(context).center(Offset.zero),
-                width: width,
-                height: height,
-              ),
-              overlayBuilder: (context, constraints) {
-                return Container(
-                  decoration: ShapeDecoration(
-                    shape: _ScannerOverlayShape(
-                      borderColor: Colors.white,
-                      borderRadius: 10,
-                      borderLength: 30,
-                      borderWidth: 10,
-                      cutOutWidth: width,
-                      cutOutHeight: height,
-                      cutOutBottomOffset: 0
-                    )
-                  ),
-                );
-              },
               onDetect: (BarcodeCapture capture) {
                 if (_paused) return;
 
@@ -284,6 +262,7 @@ class ScanViewState extends State<ScanView> {
 class _BarcodeScannerField extends EditableText {
   _BarcodeScannerField({
     Key? key,
+    FocusNode? focusNode,
     required TextEditingController controller,
     required void Function(String) onChanged
   }) : super(
@@ -292,7 +271,7 @@ class _BarcodeScannerField extends EditableText {
     showCursor: false,
     onChanged: onChanged,
     controller: controller,
-    focusNode: _BarcodeScannerFieldFocusNode(),
+    focusNode: focusNode ?? BarcodeScannerFieldFocusNode(),
     style: const TextStyle(),
     cursorColor: Colors.transparent,
     backgroundCursorColor: Colors.transparent
@@ -327,187 +306,9 @@ class _BarcodeScannerFieldState extends EditableTextState {
   }
 }
 
-class _BarcodeScannerFieldFocusNode extends FocusNode {
+class BarcodeScannerFieldFocusNode extends FocusNode {
   @override
   bool consumeKeyboardToken() {
     return false;
-  }
-}
-
-// There is no default overlay in mobile_scanner
-// Backported from https://pub.dev/packages/qr_code_scanner
-class _ScannerOverlayShape extends ShapeBorder {
-  _ScannerOverlayShape({
-    this.borderColor = Colors.red,
-    this.borderWidth = 3.0,
-    this.overlayColor = const Color.fromRGBO(0, 0, 0, 80),
-    this.borderRadius = 0,
-    this.borderLength = 40,
-    double? cutOutSize,
-    double? cutOutWidth,
-    double? cutOutHeight,
-    this.cutOutBottomOffset = 0,
-  })  : cutOutWidth = cutOutWidth ?? cutOutSize ?? 250,
-        cutOutHeight = cutOutHeight ?? cutOutSize ?? 250 {
-    assert(
-      borderLength <=
-          min(this.cutOutWidth, this.cutOutHeight) / 2 + borderWidth * 2,
-      "Border can't be larger than ${min(this.cutOutWidth, this.cutOutHeight) / 2 + borderWidth * 2}",
-    );
-    assert(
-        (cutOutWidth == null && cutOutHeight == null) ||
-            (cutOutSize == null && cutOutWidth != null && cutOutHeight != null),
-        'Use only cutOutWidth and cutOutHeight or only cutOutSize');
-  }
-
-  final Color borderColor;
-  final double borderWidth;
-  final Color overlayColor;
-  final double borderRadius;
-  final double borderLength;
-  final double cutOutWidth;
-  final double cutOutHeight;
-  final double cutOutBottomOffset;
-
-  @override
-  EdgeInsetsGeometry get dimensions => const EdgeInsets.all(10);
-
-  @override
-  Path getInnerPath(Rect rect, {TextDirection? textDirection}) {
-    return Path()
-      ..fillType = PathFillType.evenOdd
-      ..addPath(getOuterPath(rect), Offset.zero);
-  }
-
-  @override
-  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
-    Path getLeftTopPath(Rect rect) {
-      return Path()
-        ..moveTo(rect.left, rect.bottom)
-        ..lineTo(rect.left, rect.top)
-        ..lineTo(rect.right, rect.top);
-    }
-
-    return getLeftTopPath(rect)
-      ..lineTo(
-        rect.right,
-        rect.bottom,
-      )
-      ..lineTo(
-        rect.left,
-        rect.bottom,
-      )
-      ..lineTo(
-        rect.left,
-        rect.top,
-      );
-  }
-
-  @override
-  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
-    final width = rect.width;
-    final borderWidthSize = width / 2;
-    final height = rect.height;
-    final borderOffset = borderWidth / 2;
-    final limitedBorderLength =
-      borderLength > min(cutOutHeight, cutOutHeight) / 2 + borderWidth * 2
-        ? borderWidthSize / 2
-        : borderLength;
-    final limitedCutOutWidth =
-      cutOutWidth < width ? cutOutWidth : width - borderOffset;
-    final limitedCutOutHeight =
-      cutOutHeight < height ? cutOutHeight : height - borderOffset;
-
-    final backgroundPaint = Paint()
-      ..color = overlayColor
-      ..style = PaintingStyle.fill;
-
-    final borderPaint = Paint()
-      ..color = borderColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = borderWidth;
-
-    final boxPaint = Paint()
-      ..color = borderColor
-      ..style = PaintingStyle.fill
-      ..blendMode = BlendMode.dstOut;
-
-    final cutOutRect = Rect.fromLTWH(
-      rect.left + width / 2 - limitedCutOutWidth / 2 + borderOffset,
-      -cutOutBottomOffset +
-          rect.top +
-          height / 2 -
-          limitedCutOutHeight / 2 +
-          borderOffset,
-      limitedCutOutWidth - borderOffset * 2,
-      limitedCutOutHeight - borderOffset * 2,
-    );
-
-    canvas
-      ..saveLayer(
-        rect,
-        backgroundPaint,
-      )
-      ..drawRect(
-        rect,
-        backgroundPaint,
-      )
-      ..drawRRect(
-        RRect.fromLTRBAndCorners(
-          cutOutRect.right - limitedBorderLength,
-          cutOutRect.top,
-          cutOutRect.right,
-          cutOutRect.top + limitedBorderLength,
-          topRight: Radius.circular(borderRadius),
-        ),
-        borderPaint,
-      )
-      ..drawRRect(
-        RRect.fromLTRBAndCorners(
-          cutOutRect.left,
-          cutOutRect.top,
-          cutOutRect.left + limitedBorderLength,
-          cutOutRect.top + limitedBorderLength,
-          topLeft: Radius.circular(borderRadius),
-        ),
-        borderPaint,
-      )
-      ..drawRRect(
-        RRect.fromLTRBAndCorners(
-          cutOutRect.right - limitedBorderLength,
-          cutOutRect.bottom - limitedBorderLength,
-          cutOutRect.right,
-          cutOutRect.bottom,
-          bottomRight: Radius.circular(borderRadius),
-        ),
-        borderPaint,
-      )
-      ..drawRRect(
-        RRect.fromLTRBAndCorners(
-          cutOutRect.left,
-          cutOutRect.bottom - limitedBorderLength,
-          cutOutRect.left + limitedBorderLength,
-          cutOutRect.bottom,
-          bottomLeft: Radius.circular(borderRadius),
-        ),
-        borderPaint,
-      )
-      ..drawRRect(
-        RRect.fromRectAndRadius(
-          cutOutRect,
-          Radius.circular(borderRadius),
-        ),
-        boxPaint,
-      )
-      ..restore();
-  }
-
-  @override
-  ShapeBorder scale(double t) {
-    return _ScannerOverlayShape(
-      borderColor: borderColor,
-      borderWidth: borderWidth,
-      overlayColor: overlayColor,
-    );
   }
 }
