@@ -172,18 +172,19 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   }
 
   Widget _buildScannerView(BuildContext context) {
-    return KeyboardListener(
+    return Focus(
       autofocus: false,
-      focusNode: FocusNode(),
-      onKeyEvent: (KeyEvent rawKeyEvent) async {
+      onKeyEvent: (FocusNode focusNode, KeyEvent rawKeyEvent) {
         if (rawKeyEvent is! KeyUpEvent) {
           _textEditingController.text = _textEditingController.text + (translateChar(rawKeyEvent) ?? '');
         }
 
-        if (!_finishKeys.contains(rawKeyEvent.physicalKey)) return;
+        if (!_finishKeys.contains(rawKeyEvent.physicalKey)) return KeyEventResult.handled;
 
         _editingFinished = true;
         _onEditingFinished();
+
+        return KeyEventResult.handled;
       },
       child: Scaffold(
         appBar: AppBar(
