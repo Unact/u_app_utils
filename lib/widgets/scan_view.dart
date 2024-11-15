@@ -30,7 +30,7 @@ class ScanView extends StatefulWidget {
   ScanViewState createState() => ScanViewState();
 }
 
-class ScanViewState extends State<ScanView> {
+class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   final GlobalKey _qrKey = GlobalKey();
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
@@ -114,6 +114,7 @@ class ScanViewState extends State<ScanView> {
     super.initState();
 
     _initScanMode();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   Future<void> _initScanMode() async {
@@ -125,7 +126,29 @@ class ScanViewState extends State<ScanView> {
   @override
   void dispose() {
     _controller.dispose();
+    WidgetsBinding.instance.removeObserver(this);
+
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (_scanMode == _ScanMode.camera) return;
+
+    switch (state) {
+      case AppLifecycleState.detached:
+        barcodeScannerFocusNode.unfocus();
+      case AppLifecycleState.resumed:
+        barcodeScannerFocusNode.requestFocus();
+      case AppLifecycleState.inactive:
+        barcodeScannerFocusNode.unfocus();
+      case AppLifecycleState.hidden:
+        barcodeScannerFocusNode.unfocus();
+      case AppLifecycleState.paused:
+        barcodeScannerFocusNode.unfocus();
+    }
   }
 
   @override
