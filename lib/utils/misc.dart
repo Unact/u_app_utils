@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:f_logs/f_logs.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -30,8 +29,6 @@ class Misc {
 
   static void logError(dynamic error, StackTrace? stackTrace) {
     debugPrint(error.toString());
-
-    FLog.error(text: error.toString(), exception: error, stacktrace: stackTrace);
   }
 
   static Future<void> reportError(dynamic error, StackTrace? stackTrace) async {

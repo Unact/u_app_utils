@@ -23,8 +23,8 @@ class ScanView extends StatefulWidget {
     this.showScanner = false,
     this.barcodeMode = false,
     required this.onRead,
-    Key? key
-  }) : super(key: key);
+    super.key
+  });
 
   @override
   ScanViewState createState() => ScanViewState();
@@ -106,7 +106,7 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   }
 
   static Future<void> _vibrate() async {
-    if (await Vibration.hasVibrator() ?? false) Vibration.vibrate();
+    if (await Vibration.hasVibrator()) Vibration.vibrate();
   }
 
   @override
