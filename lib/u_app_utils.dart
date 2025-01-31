@@ -1,5 +1,3 @@
-library u_app_utils;
-
 export 'services/renew_api.dart';
 
 export 'utils/extensions.dart';

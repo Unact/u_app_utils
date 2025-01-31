@@ -12,7 +12,7 @@ class NumTextField extends StatefulWidget {
   final void Function()? onTap;
 
   NumTextField({
-    Key? key,
+    super.key,
     this.controller,
     this.decimal = true,
     this.style,
@@ -21,7 +21,7 @@ class NumTextField extends StatefulWidget {
     this.textAlignVertical,
     this.decoration,
     this.onTap
-  }) : super(key: key);
+  });
 
   @override
   State<NumTextField> createState() => _NumTextFieldState();

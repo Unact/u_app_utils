@@ -8,8 +8,8 @@ class ImagesView extends StatefulWidget {
   ImagesView({
     required this.images,
     this.idx = 0,
-    Key? key
-  }) : super(key: key);
+    super.key
+  });
 
   @override
   ImagesViewState createState() => ImagesViewState();

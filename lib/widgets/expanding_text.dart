@@ -7,11 +7,11 @@ class ExpandingText extends StatefulWidget {
   final int? limit;
 
   ExpandingText(this.content, {
-    Key? key,
+    super.key,
     this.style,
     this.textAlign = TextAlign.right,
     this.limit = 40
-  }) : super(key: key);
+  });
 
   @override
   ExpandingTextState createState() => ExpandingTextState();

@@ -301,5 +301,5 @@ class PayloadTooLargeException extends ApiException {
 }
 
 class UnknownApiException extends ApiException {
-  UnknownApiException(errorMsg, statusCode) : super(errorMsg, statusCode);
+  UnknownApiException(super.errorMsg, super.statusCode);
 }

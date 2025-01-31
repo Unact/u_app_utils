@@ -12,8 +12,8 @@ class CameraView extends StatefulWidget {
     this.compress = false,
     required this.onError,
     required this.onTakePicture,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   State<CameraView> createState() => _CameraViewState();

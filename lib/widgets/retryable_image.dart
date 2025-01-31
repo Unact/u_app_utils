@@ -18,7 +18,7 @@ class RetryableImage extends StatefulWidget {
   final BaseCacheManager? cacheManager;
 
   RetryableImage({
-    Key? key,
+    super.key,
     required this.imageUrl,
     this.width,
     this.height,
@@ -27,7 +27,7 @@ class RetryableImage extends StatefulWidget {
     this.color = Colors.blue,
     this.cacheKey,
     this.cacheManager,
-  }) : super(key: key);
+  });
 
   @override
   RetryableImageState createState() => RetryableImageState();

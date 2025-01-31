@@ -285,16 +285,13 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
 
 class _BarcodeScannerField extends EditableText {
   _BarcodeScannerField({
-    Key? key,
     FocusNode? focusNode,
-    required TextEditingController controller,
+    required super.controller,
     required void Function(String) onChanged
   }) : super(
-    key: key,
     autofocus: true,
     showCursor: false,
     onChanged: onChanged,
-    controller: controller,
     focusNode: focusNode ?? BarcodeScannerFieldFocusNode(),
     style: const TextStyle(),
     cursorColor: Colors.transparent,

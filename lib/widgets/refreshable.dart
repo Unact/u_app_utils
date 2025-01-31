@@ -24,8 +24,8 @@ class Refreshable extends StatefulWidget {
     this.scrollController,
     this.messageText,
     this.processingText,
-    Key? key
-  }) : super(key: key);
+    super.key
+  });
 
 @override
   State<Refreshable> createState() => _RefreshableState();

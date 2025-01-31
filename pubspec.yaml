@@ -19,8 +19,8 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   fk_user_agent:
     git:
-      url: git@github.com:xkxeeshankhan/fk_user_agent.git
-      ref: '2168301'
+      url: git@github.com:kennir/fk_user_agent.git
+      ref: '6068ac8'
   intl: ^0.19.0
   keyboard_actions: ^4.2.0
   mobile_scanner: ^5.2.3
