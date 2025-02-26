@@ -108,6 +108,22 @@ base class RenewApi {
     await _request('v2/reset_password', 'POST', resetGenerator, authRefresh: false);
   }
 
+  Future<void> register({
+    required String url,
+    required String email,
+    required String telNum,
+    required String password
+  }) async {
+    await _setApiData(url, '', '');
+
+    resetGenerator() => { 'Authorization': authSchema };
+    generator() => { 'email': email, 'tel_num': telNum, 'password': password };
+
+    final result =  await _request('v2/register', 'POST', resetGenerator, authRefresh: false, dataGenerator: generator);
+
+    await _setApiData(url, result['access_token'], result['refresh_token']);
+  }
+
   Future<dynamic> get(
     String apiMethod,
     {
