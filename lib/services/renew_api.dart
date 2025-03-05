@@ -124,6 +124,12 @@ base class RenewApi {
     await _setApiData(url, result['access_token'], result['refresh_token']);
   }
 
+  Future<void> unregister() async {
+    await _request('v2/unregister', 'POST', _accessGenerator, authRefresh: true);
+
+    await _setApiData('', '', '');
+  }
+
   Future<dynamic> get(
     String apiMethod,
     {
