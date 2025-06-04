@@ -59,9 +59,13 @@ class Misc {
   }
 
   static void showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message))
-    );
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  static void showSnackBar(BuildContext context, SnackBar snackBar) {
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   static Future<void> clearFiles(String folder, [Set<String> newRelFilePaths = const <String>{}]) async {
