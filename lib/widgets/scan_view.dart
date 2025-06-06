@@ -13,6 +13,7 @@ enum _ScanMode {
 }
 
 class ScanView extends StatefulWidget {
+  final List<Widget> actions;
   final Widget child;
   final bool showScanner;
   final bool barcodeMode;
@@ -20,6 +21,7 @@ class ScanView extends StatefulWidget {
 
   const ScanView({
     required this.child,
+    this.actions = const [],
     this.showScanner = false,
     this.barcodeMode = false,
     required this.onRead,
@@ -196,7 +198,8 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
               onPressed: () {
                 setState(() => _scanMode = _ScanMode.camera);
               }
-            )
+            ),
+            ...widget.actions
           ].whereType<Widget>().toList(),
         ),
         extendBodyBehindAppBar: false,
@@ -244,7 +247,8 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
             onPressed: () {
               setState(() => _scanMode = _ScanMode.scanner);
             }
-          )
+          ),
+          ...widget.actions
         ].whereType<Widget>().toList()
       ),
       extendBodyBehindAppBar: false,
