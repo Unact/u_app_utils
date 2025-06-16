@@ -80,6 +80,24 @@ class Misc {
     }
   }
 
+  static Future<void> launchAppUpdate({
+    required String repoName,
+    required String version,
+    Function? onError
+  }) async {
+    String manifestRepoUrl = 'https://unact.github.io/mobile_apps/$repoName';
+    String appRepoUrl = 'https://github.com/Unact/$repoName';
+    String androidUpdateUrl = '$appRepoUrl/releases/download/$version/app-release.apk';
+    String iosUpdateUrl = 'itms-services://?action=download-manifest&url=$manifestRepoUrl/manifest.plist';
+    Uri uri = Uri.parse(Platform.isIOS ? iosUpdateUrl : androidUpdateUrl);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      onError?.call();
+    }
+  }
+
   static Future<String> get fullVersion async {
     final info = await PackageInfo.fromPlatform();
 
