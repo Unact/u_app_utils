@@ -227,6 +227,14 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   }
 
   Widget _buildCameraView(BuildContext context) {
+    final double width = widget.barcodeMode ? 300 : 200;
+    final double height = widget.barcodeMode ? 150 : 200;
+    final Rect scanWindow = Rect.fromCenter(
+      center: MediaQuery.sizeOf(context).center(const Offset(0, -100)),
+      width: width,
+      height: height,
+    );
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -255,24 +263,28 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
       body: Stack(
         fit: StackFit.expand,
         children: [
-          Container(color: Colors.black),
-          Center(
-            child: MobileScanner(
-              key: _qrKey,
-              controller: _controller,
-              onDetect: (BarcodeCapture capture) {
-                if (_paused) return;
+          MobileScanner(
+            key: _qrKey,
+            controller: _controller,
+            scanWindow: scanWindow,
+            onDetect: (BarcodeCapture capture) {
+              if (_paused) return;
 
-                setState(() => _paused = true);
-                _beep();
-                _vibrate();
-                widget.onRead(capture.barcodes.firstOrNull?.rawValue ?? '');
-                setState(() => _paused = false);
-              },
-              errorBuilder: (context, error, child) {
-                return Text(error.errorDetails?.message ?? 'ww');
-              }
-            ),
+              setState(() => _paused = true);
+              _beep();
+              _vibrate();
+              widget.onRead(capture.barcodes.firstOrNull?.rawValue ?? '');
+              setState(() => _paused = false);
+            },
+            errorBuilder: (context, error) {
+              return Text(error.errorDetails?.message ?? '');
+            }
+          ),
+          ScanWindowOverlay(
+            scanWindow: scanWindow,
+            controller: _controller,
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+            borderWidth: 2
           ),
           Container(
             padding: const EdgeInsets.only(top: 32),
