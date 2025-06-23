@@ -17,11 +17,13 @@ class ScanView extends StatefulWidget {
   final Widget child;
   final bool showScanner;
   final bool barcodeMode;
+  final bool paused;
   final Function(String) onRead;
 
   const ScanView({
     required this.child,
     this.actions = const [],
+    this.paused = false,
     this.showScanner = false,
     this.barcodeMode = false,
     required this.onRead,
@@ -35,7 +37,8 @@ class ScanView extends StatefulWidget {
 class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   final GlobalKey _qrKey = GlobalKey();
   final MobileScannerController _controller = MobileScannerController(
-    detectionSpeed: DetectionSpeed.noDuplicates,
+    detectionSpeed: DetectionSpeed.normal,
+    detectionTimeoutMs: 2000,
     formats: const [
       BarcodeFormat.qrCode,
       BarcodeFormat.code128,
@@ -47,7 +50,6 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   );
   bool _hasCamera = false;
   _ScanMode _scanMode = _ScanMode.scanner;
-  bool _paused = false;
   bool _editingFinished = false;
   final BarcodeScannerFieldFocusNode barcodeScannerFocusNode = BarcodeScannerFieldFocusNode();
   final TextEditingController _textEditingController = TextEditingController();
@@ -165,6 +167,7 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   }
 
   void _onEditingFinished() {
+    if (widget.paused) return;
     if (!_editingFinished) return;
     if (_textEditingController.text == '') return;
 
@@ -268,13 +271,14 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
             controller: _controller,
             scanWindow: scanWindow,
             onDetect: (BarcodeCapture capture) {
-              if (_paused) return;
+              var barcode = capture.barcodes.firstOrNull;
 
-              setState(() => _paused = true);
+              if (widget.paused) return;
+              if (barcode == null || barcode.format == BarcodeFormat.unknown) return;
+
               _beep();
               _vibrate();
-              widget.onRead(capture.barcodes.firstOrNull?.rawValue ?? '');
-              setState(() => _paused = false);
+              widget.onRead(barcode.rawValue ?? '');
             },
             errorBuilder: (context, error) {
               return Text(error.errorDetails?.message ?? '');
