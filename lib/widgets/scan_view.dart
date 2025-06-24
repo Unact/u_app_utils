@@ -192,6 +192,7 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
         return KeyEventResult.handled;
       },
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           backgroundColor: Colors.black,
           actions: <Widget?>[
@@ -239,6 +240,7 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
     );
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         backgroundColor: Colors.black,
         actions: <Widget?>[
