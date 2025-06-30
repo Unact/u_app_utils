@@ -38,7 +38,7 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   final GlobalKey _qrKey = GlobalKey();
   final MobileScannerController _controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.normal,
-    detectionTimeoutMs: 2000,
+    detectionTimeoutMs: 1000,
     formats: const [
       BarcodeFormat.qrCode,
       BarcodeFormat.code128,
@@ -48,6 +48,7 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
       BarcodeFormat.dataMatrix
     ]
   );
+  String lastScan = '';
   bool _hasCamera = false;
   _ScanMode _scanMode = _ScanMode.scanner;
   bool _editingFinished = false;
@@ -273,14 +274,18 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
             controller: _controller,
             scanWindow: scanWindow,
             onDetect: (BarcodeCapture capture) {
-              var barcode = capture.barcodes.firstOrNull;
+              Barcode? barcode = capture.barcodes.firstOrNull;
+              String currentScan = barcode?.rawValue ?? '';
 
               if (widget.paused) return;
               if (barcode == null || barcode.format == BarcodeFormat.unknown) return;
+              if (currentScan == lastScan) return;
+
+              lastScan = currentScan;
 
               _beep();
               _vibrate();
-              widget.onRead(barcode.rawValue ?? '');
+              widget.onRead(lastScan);
             },
             errorBuilder: (context, error) {
               return Text(error.errorDetails?.message ?? '');
