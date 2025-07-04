@@ -37,6 +37,7 @@ class ScanView extends StatefulWidget {
 class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   final GlobalKey _qrKey = GlobalKey();
   final MobileScannerController _controller = MobileScannerController(
+    cameraResolution: Size(1920, 1080),
     detectionSpeed: DetectionSpeed.normal,
     detectionTimeoutMs: 1000,
     formats: const [
@@ -140,19 +141,27 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    if (_scanMode == _ScanMode.camera) return;
-
-    switch (state) {
-      case AppLifecycleState.detached:
-        barcodeScannerFocusNode.unfocus();
-      case AppLifecycleState.resumed:
-        barcodeScannerFocusNode.requestFocus();
-      case AppLifecycleState.inactive:
-        barcodeScannerFocusNode.unfocus();
-      case AppLifecycleState.hidden:
-        barcodeScannerFocusNode.unfocus();
-      case AppLifecycleState.paused:
-        barcodeScannerFocusNode.unfocus();
+    if (_scanMode == _ScanMode.camera) {
+      switch (state) {
+        case AppLifecycleState.detached:
+        case AppLifecycleState.hidden:
+        case AppLifecycleState.paused:
+          return;
+        case AppLifecycleState.resumed:
+          unawaited(_controller.start());
+        case AppLifecycleState.inactive:
+          unawaited(_controller.stop());
+      }
+    } else {
+      switch (state) {
+        case AppLifecycleState.resumed:
+          barcodeScannerFocusNode.requestFocus();
+        case AppLifecycleState.detached:
+        case AppLifecycleState.hidden:
+        case AppLifecycleState.inactive:
+        case AppLifecycleState.paused:
+          barcodeScannerFocusNode.unfocus();
+      }
     }
   }
 
