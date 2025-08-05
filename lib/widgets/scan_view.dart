@@ -1,21 +1,15 @@
 import 'dart:async';
 
-import 'package:camera/camera.dart' as camera;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:soundpool/soundpool.dart';
 import 'package:vibration/vibration.dart';
 
-enum _ScanMode {
-  scanner,
-  camera
-}
 
 class ScanView extends StatefulWidget {
   final List<Widget> actions;
   final Widget child;
-  final bool showScanner;
   final bool barcodeMode;
   final bool paused;
   final Function(String) onRead;
@@ -24,7 +18,6 @@ class ScanView extends StatefulWidget {
     required this.child,
     this.actions = const [],
     this.paused = false,
-    this.showScanner = false,
     this.barcodeMode = false,
     required this.onRead,
     super.key
@@ -50,10 +43,8 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
     ]
   );
   String lastScan = '';
-  bool _hasCamera = false;
-  _ScanMode _scanMode = _ScanMode.scanner;
   bool _editingFinished = false;
-  final BarcodeScannerFieldFocusNode barcodeScannerFocusNode = BarcodeScannerFieldFocusNode();
+  final FocusNode barcodeScannerFocusNode = FocusNode();
   final TextEditingController _textEditingController = TextEditingController();
   static final List<PhysicalKeyboardKey> _finishKeys = [
     PhysicalKeyboardKey.enter,
@@ -119,14 +110,7 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   void initState() {
     super.initState();
 
-    _initScanMode();
     WidgetsBinding.instance.addObserver(this);
-  }
-
-  Future<void> _initScanMode() async {
-    _hasCamera = (await camera.availableCameras()).isNotEmpty;
-
-    setState(() {});
   }
 
   @override
@@ -141,35 +125,18 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
 
-    if (_scanMode == _ScanMode.camera) {
-      switch (state) {
-        case AppLifecycleState.detached:
-        case AppLifecycleState.hidden:
-        case AppLifecycleState.paused:
-          return;
-        case AppLifecycleState.resumed:
-          unawaited(_controller.start());
-        case AppLifecycleState.inactive:
-          unawaited(_controller.stop());
-      }
-    } else {
-      switch (state) {
-        case AppLifecycleState.resumed:
-          barcodeScannerFocusNode.requestFocus();
-        case AppLifecycleState.detached:
-        case AppLifecycleState.hidden:
-        case AppLifecycleState.inactive:
-        case AppLifecycleState.paused:
-          barcodeScannerFocusNode.unfocus();
-      }
+    switch (state) {
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+        barcodeScannerFocusNode.unfocus();
+        return;
+      case AppLifecycleState.resumed:
+        unawaited(_controller.start());
+        barcodeScannerFocusNode.requestFocus();
+      case AppLifecycleState.inactive:
+        unawaited(_controller.stop());
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!widget.showScanner) return _buildCameraView(context);
-
-    return _scanMode == _ScanMode.camera ? _buildCameraView(context) : _buildScannerView(context);
   }
 
   String? translateChar(KeyEvent rawKeyEvent) {
@@ -186,7 +153,16 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
     _textEditingController.text = '';
   }
 
-  Widget _buildScannerView(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
+    final double width = widget.barcodeMode ? 300 : 200;
+    final double height = widget.barcodeMode ? 150 : 200;
+    final Rect scanWindow = Rect.fromCenter(
+      center: MediaQuery.sizeOf(context).center(const Offset(0, -100)),
+      width: width,
+      height: height,
+    );
+
     return Focus(
       autofocus: false,
       onKeyEvent: (FocusNode focusNode, KeyEvent rawKeyEvent) {
@@ -203,32 +179,72 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
+        backgroundColor: Colors.black,
         appBar: AppBar(
           backgroundColor: Colors.black,
           actions: <Widget?>[
-            !_hasCamera ? null : IconButton(
+            IconButton(
               color: Colors.white,
-              icon: const Icon(Icons.camera),
-              onPressed: () {
-                setState(() => _scanMode = _ScanMode.camera);
-              }
+              icon: const Icon(Icons.flash_on),
+              onPressed: _controller.toggleTorch
+            ),
+            IconButton(
+              color: Colors.white,
+              icon: const Icon(Icons.switch_camera),
+              onPressed: _controller.switchCamera
             ),
             ...widget.actions
-          ].whereType<Widget>().toList(),
+          ].whereType<Widget>().toList()
         ),
         extendBodyBehindAppBar: false,
         body: Stack(
+          fit: StackFit.expand,
           children: [
             Center(
-              child: _BarcodeScannerField(
+              child: TextField(
+                keyboardType: TextInputType.none,
                 focusNode: barcodeScannerFocusNode,
                 controller: _textEditingController,
-                onChanged: (String changed) => _onEditingFinished()
+                decoration: InputDecoration(border: InputBorder.none),
+                onChanged: (String changed) => _onEditingFinished(),
+                autofocus: true,
+                showCursor: false,
+                cursorColor: Colors.transparent
               )
+            ),
+            MobileScanner(
+              key: _qrKey,
+              controller: _controller,
+              scanWindow: scanWindow,
+              onDetect: (BarcodeCapture capture) {
+                Barcode? barcode = capture.barcodes.firstOrNull;
+                String currentScan = barcode?.rawValue ?? '';
+
+                if (widget.paused) return;
+                if (barcode == null || barcode.format == BarcodeFormat.unknown) return;
+                if (currentScan == lastScan) return;
+
+                lastScan = currentScan;
+
+                _beep();
+                _vibrate();
+                widget.onRead(lastScan);
+              },
+              errorBuilder: (context, error) {
+                return Text(error.errorDetails?.message ?? '');
+              },
+              placeholderBuilder: (context) {
+                return Container(color: Colors.transparent);
+              }
+            ),
+            ScanWindowOverlay(
+              scanWindow: scanWindow,
+              controller: _controller,
+              borderRadius: BorderRadius.all(Radius.circular(10)),
+              borderWidth: 2
             ),
             Container(
               padding: const EdgeInsets.only(top: 32),
-              color: const Color.fromRGBO(0, 0, 0, 0.5),
               child: Align(
                 alignment: Alignment.topCenter,
                 child: widget.child
@@ -238,134 +254,5 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
         )
       )
     );
-  }
-
-  Widget _buildCameraView(BuildContext context) {
-    final double width = widget.barcodeMode ? 300 : 200;
-    final double height = widget.barcodeMode ? 150 : 200;
-    final Rect scanWindow = Rect.fromCenter(
-      center: MediaQuery.sizeOf(context).center(const Offset(0, -100)),
-      width: width,
-      height: height,
-    );
-
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        actions: <Widget?>[
-          IconButton(
-            color: Colors.white,
-            icon: const Icon(Icons.flash_on),
-            onPressed: _controller.toggleTorch
-          ),
-          IconButton(
-            color: Colors.white,
-            icon: const Icon(Icons.switch_camera),
-            onPressed: _controller.switchCamera
-          ),
-          !widget.showScanner ? null : IconButton(
-            color: Colors.white,
-            icon: const Icon(Icons.keyboard),
-            onPressed: () {
-              setState(() => _scanMode = _ScanMode.scanner);
-            }
-          ),
-          ...widget.actions
-        ].whereType<Widget>().toList()
-      ),
-      extendBodyBehindAppBar: false,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          MobileScanner(
-            key: _qrKey,
-            controller: _controller,
-            scanWindow: scanWindow,
-            onDetect: (BarcodeCapture capture) {
-              Barcode? barcode = capture.barcodes.firstOrNull;
-              String currentScan = barcode?.rawValue ?? '';
-
-              if (widget.paused) return;
-              if (barcode == null || barcode.format == BarcodeFormat.unknown) return;
-              if (currentScan == lastScan) return;
-
-              lastScan = currentScan;
-
-              _beep();
-              _vibrate();
-              widget.onRead(lastScan);
-            },
-            errorBuilder: (context, error) {
-              return Text(error.errorDetails?.message ?? '');
-            }
-          ),
-          ScanWindowOverlay(
-            scanWindow: scanWindow,
-            controller: _controller,
-            borderRadius: BorderRadius.all(Radius.circular(10)),
-            borderWidth: 2
-          ),
-          Container(
-            padding: const EdgeInsets.only(top: 32),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: widget.child
-            )
-          )
-        ]
-      )
-    );
-  }
-}
-
-class _BarcodeScannerField extends EditableText {
-  _BarcodeScannerField({
-    FocusNode? focusNode,
-    required super.controller,
-    required void Function(String) onChanged
-  }) : super(
-    autofocus: true,
-    showCursor: false,
-    onChanged: onChanged,
-    focusNode: focusNode ?? BarcodeScannerFieldFocusNode(),
-    style: const TextStyle(),
-    cursorColor: Colors.transparent,
-    backgroundCursorColor: Colors.transparent
-  );
-
-  @override
-  _BarcodeScannerFieldState createState() => _BarcodeScannerFieldState();
-}
-
-class _BarcodeScannerFieldState extends EditableTextState {
-  @override
-  void initState() {
-    widget.focusNode.addListener(funcionListener);
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    widget.focusNode.removeListener(funcionListener);
-    super.dispose();
-  }
-
-  @override
-  void requestKeyboard() {
-    super.requestKeyboard();
-
-    SystemChannels.textInput.invokeMethod('TextInput.hide');
-  }
-
-  void funcionListener() {
-    if (widget.focusNode.hasFocus) requestKeyboard();
-  }
-}
-
-class BarcodeScannerFieldFocusNode extends FocusNode {
-  @override
-  bool consumeKeyboardToken() {
-    return false;
   }
 }
