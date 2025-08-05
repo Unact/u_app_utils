@@ -182,19 +182,7 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
         backgroundColor: Colors.black,
         appBar: AppBar(
           backgroundColor: Colors.black,
-          actions: <Widget?>[
-            IconButton(
-              color: Colors.white,
-              icon: const Icon(Icons.flash_on),
-              onPressed: _controller.toggleTorch
-            ),
-            IconButton(
-              color: Colors.white,
-              icon: const Icon(Icons.switch_camera),
-              onPressed: _controller.switchCamera
-            ),
-            ...widget.actions
-          ].whereType<Widget>().toList()
+          actions: widget.actions
         ),
         extendBodyBehindAppBar: false,
         body: Stack(
