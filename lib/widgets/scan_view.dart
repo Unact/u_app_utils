@@ -11,6 +11,7 @@ class ScanView extends StatefulWidget {
   final List<Widget> actions;
   final Widget child;
   final bool barcodeMode;
+  final bool initScanner;
   final bool paused;
   final Function(String) onRead;
 
@@ -18,6 +19,7 @@ class ScanView extends StatefulWidget {
     required this.child,
     this.actions = const [],
     this.paused = false,
+    this.initScanner = false,
     this.barcodeMode = false,
     required this.onRead,
     super.key
@@ -44,7 +46,7 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
   );
   String lastScan = '';
   bool _editingFinished = false;
-  final FocusNode barcodeScannerFocusNode = FocusNode();
+  final BarcodeScannerFieldFocusNode barcodeScannerFocusNode = BarcodeScannerFieldFocusNode();
   final TextEditingController _textEditingController = TextEditingController();
   static final List<PhysicalKeyboardKey> _finishKeys = [
     PhysicalKeyboardKey.enter,
@@ -189,15 +191,11 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
           fit: StackFit.expand,
           children: [
             Center(
-              child: TextField(
-                keyboardType: TextInputType.none,
+              child: _BarcodeScannerField(
                 focusNode: barcodeScannerFocusNode,
+                keyboardType: widget.initScanner ? null : TextInputType.none,
                 controller: _textEditingController,
-                decoration: InputDecoration(border: InputBorder.none),
-                onChanged: (String changed) => _onEditingFinished(),
-                autofocus: true,
-                showCursor: false,
-                cursorColor: Colors.transparent
+                onChanged: (String changed) => _onEditingFinished()
               )
             ),
             MobileScanner(
@@ -242,5 +240,57 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
         )
       )
     );
+  }
+}
+
+class _BarcodeScannerField extends EditableText {
+  _BarcodeScannerField({
+    FocusNode? focusNode,
+    super.keyboardType,
+    required super.controller,
+    required void Function(String) onChanged
+  }) : super(
+    autofocus: true,
+    showCursor: false,
+    onChanged: onChanged,
+    focusNode: focusNode ?? BarcodeScannerFieldFocusNode(),
+    style: const TextStyle(color: Colors.transparent),
+    cursorColor: Colors.transparent,
+    backgroundCursorColor: Colors.transparent
+  );
+
+  @override
+  _BarcodeScannerFieldState createState() => _BarcodeScannerFieldState();
+}
+
+class _BarcodeScannerFieldState extends EditableTextState {
+  @override
+  void initState() {
+    widget.focusNode.addListener(funcionListener);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.focusNode.removeListener(funcionListener);
+    super.dispose();
+  }
+
+  @override
+  void requestKeyboard() {
+    super.requestKeyboard();
+
+    SystemChannels.textInput.invokeMethod('TextInput.hide');
+  }
+
+  void funcionListener() {
+    if (widget.focusNode.hasFocus) requestKeyboard();
+  }
+}
+
+class BarcodeScannerFieldFocusNode extends FocusNode {
+  @override
+  bool consumeKeyboardToken() {
+    return false;
   }
 }
