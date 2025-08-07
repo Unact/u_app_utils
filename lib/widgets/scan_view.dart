@@ -172,12 +172,12 @@ class ScanViewState extends State<ScanView> with WidgetsBindingObserver {
           _textEditingController.text = _textEditingController.text + (translateChar(rawKeyEvent) ?? '');
         }
 
-        if (!_finishKeys.contains(rawKeyEvent.physicalKey)) return KeyEventResult.handled;
+        if (!_finishKeys.contains(rawKeyEvent.physicalKey)) return KeyEventResult.ignored;
 
         _editingFinished = true;
         _onEditingFinished();
 
-        return KeyEventResult.handled;
+        return KeyEventResult.ignored;
       },
       child: Scaffold(
         resizeToAvoidBottomInset: false,
