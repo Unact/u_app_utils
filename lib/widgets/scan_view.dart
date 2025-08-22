@@ -15,12 +15,14 @@ class ScanView extends StatefulWidget {
   final Widget child;
   final bool paused;
   final Function(String) onRead;
+  final Function(String? errorMessage)? onError;
 
   const ScanView({
     required this.child,
     this.actions = const [],
     this.paused = false,
     required this.onRead,
+    this.onError,
     super.key
   });
 
@@ -109,23 +111,27 @@ class ScanViewState extends State<ScanView> {
         if (btScanner == null) return;
       }
 
-      if (!btScanner.isConnected) await btScanner.connect();
+      try {
+        if (!btScanner.isConnected) await btScanner.connect();
 
-      final dataCharacteristic = (await btScanner.discoverServices())
-        .firstWhereOrNull((service) => service.serviceUuid == Guid('fff0'))
-        ?.characteristics
-        .firstWhereOrNull((char) => char.characteristicUuid == Guid('fff1'));
+        final dataCharacteristic = (await btScanner.discoverServices())
+          .firstWhereOrNull((service) => service.serviceUuid == Guid('fff0'))
+          ?.characteristics
+          .firstWhereOrNull((char) => char.characteristicUuid == Guid('fff1'));
 
-      if (dataCharacteristic == null) return;
+        if (dataCharacteristic == null) return;
 
-      await dataCharacteristic.setNotifyValue(true);
+        await dataCharacteristic.setNotifyValue(true);
 
-      onBLEScanSubscription = dataCharacteristic.onValueReceived.listen((value) {
-        final data = String.fromCharCodes(value).replaceAll('\n\r', '');
-        final code = data.substring(1);
+        onBLEScanSubscription = dataCharacteristic.onValueReceived.listen((value) {
+          final data = String.fromCharCodes(value).replaceAll('\n\r', '');
+          final code = data.substring(1);
 
-        scanCode(code);
-      });
+          scanCode(code);
+        });
+      } on FlutterBluePlusException catch(e) {
+        widget.onError?.call('${e.description ?? 'Unknown error'} - ${e.code}');
+      }
     });
   }
 
