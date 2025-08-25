@@ -1,19 +1,22 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:soundpool/soundpool.dart';
 import 'package:vibration/vibration.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_datawedge/flutter_datawedge.dart' as dw;
+
+import '../utils/permissions.dart';
 
 class ScanView extends StatefulWidget {
   final List<Widget> actions;
   final Widget child;
   final bool paused;
+  final bool beep;
+  final bool vibrate;
   final Function(String) onRead;
   final Function(String? errorMessage)? onError;
 
@@ -21,6 +24,8 @@ class ScanView extends StatefulWidget {
     required this.child,
     this.actions = const [],
     this.paused = false,
+    this.beep = true,
+    this.vibrate = true,
     required this.onRead,
     this.onError,
     super.key
@@ -31,6 +36,8 @@ class ScanView extends StatefulWidget {
 }
 
 class ScanViewState extends State<ScanView> {
+  final player = AudioPlayer();
+  static final String _kCryptoSeparator = '\u001D';
   static final String _kBTScannerPrefix = 'SR5600';
   final GlobalKey _qrKey = GlobalKey();
   final MobileScannerController _controller = MobileScannerController(
@@ -53,17 +60,12 @@ class ScanViewState extends State<ScanView> {
   StreamSubscription? onBLEScanSubscription;
   StreamSubscription? onBLEStateSubscription;
 
-  static final Soundpool _kPool = Soundpool.fromOptions(options: const SoundpoolOptions());
-  static final Future<int> _kBeepId = rootBundle
-    .load('packages/u_app_utils/assets/beep.mp3')
-    .then((soundData) => _kPool.load(soundData));
-
-  static Future<void> _beep() async {
-    await _kPool.play(await _kBeepId);
+  Future<void> _beep() async {
+    await player.play(AssetSource('../packages/u_app_utils/assets/beep.mp3'));
   }
 
-  static Future<void> _vibrate() async {
-    if (await Vibration.hasVibrator()) Vibration.vibrate();
+  Future<void> _vibrate() async {
+    if (await Vibration.hasVibrator()) await Vibration.vibrate();
   }
 
   @override
@@ -82,6 +84,14 @@ class ScanViewState extends State<ScanView> {
 
       if (barcode == null || barcode.format == BarcodeFormat.unknown) return;
 
+      if (barcode.rawValue == null) {
+        currentScan = '';
+      } else {
+        if (barcode.format == BarcodeFormat.dataMatrix && barcode.rawValue![0] == _kCryptoSeparator) {
+          currentScan = barcode.rawValue!.substring(1);
+        }
+      }
+
       scanCode(currentScan);
     });
   }
@@ -94,6 +104,9 @@ class ScanViewState extends State<ScanView> {
 
   Future<void> setupBLEScanner() async {
     if (await FlutterBluePlus.isSupported == false) return;
+    if (await Permissions.hasBluetoothPermission() == false || await Permissions.hasLocationPermissions() == false) {
+      return;
+    }
 
     onBLEStateSubscription = FlutterBluePlus.adapterState.listen((BluetoothAdapterState state) async {
       if (state != BluetoothAdapterState.on) return;
@@ -141,8 +154,8 @@ class ScanViewState extends State<ScanView> {
 
     lastScan = scanData;
 
-    _beep();
-    _vibrate();
+    if (widget.beep) _beep();
+    if (widget.vibrate) _vibrate();
     widget.onRead(lastScan);
   }
 
