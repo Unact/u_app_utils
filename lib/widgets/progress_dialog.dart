@@ -3,7 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 class ProgressDialog {
-  Completer<void> _dialogCompleter = Completer();
+  Completer<void> _routeOpenCompleter = Completer();
+  Completer<void> _routeCloseCompleter = Completer();
 
   final BuildContext _context;
 
@@ -21,12 +22,17 @@ class ProgressDialog {
     );
     NavigatorState state = Navigator.of(_context);
     state.push(route);
-    await _dialogCompleter.future;
+    await _routeOpenCompleter.future;
     state.removeRoute(route);
+
+    _routeCloseCompleter.complete();
+    _routeCloseCompleter = Completer();
   }
 
-  void close() {
-    _dialogCompleter.complete();
-    _dialogCompleter = Completer();
+  Future<void> close() async {
+    _routeOpenCompleter.complete();
+    _routeOpenCompleter = Completer();
+
+    await _routeCloseCompleter.future;
   }
 }
