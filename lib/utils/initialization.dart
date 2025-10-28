@@ -18,7 +18,9 @@ class Initialization {
         options.beforeSend = (SentryEvent event, dynamic hint) async {
           if (isDebug) return null;
 
-          return event.copyWith(user: await userGenerator.call());
+          event.user = await userGenerator.call();
+
+          return event;
         };
       },
       appRunner: appRunner
