@@ -1,13 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view_gallery.dart';
 
 class ImagesView extends StatefulWidget {
   final List<Widget> images;
   final int idx;
+  final FutureOr<void> Function(int idx)? onDelete;
 
   ImagesView({
     required this.images,
     this.idx = 0,
+    this.onDelete,
     super.key
   });
 
@@ -32,7 +36,26 @@ class ImagesViewState extends State<ImagesView> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         centerTitle: true,
-        title: Text('${_curIdx + 1} из ${widget.images.length}')
+        title: Text(widget.images.isEmpty ? '' : '${_curIdx + 1} из ${widget.images.length}'),
+        actions: widget.onDelete == null ?
+          [] :
+          [
+            IconButton(
+              onPressed: () async {
+                await widget.onDelete!(_curIdx);
+                widget.images.removeAt(_curIdx);
+
+                if (widget.images.isEmpty) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) => Navigator.pop(context));
+                  return;
+                }
+
+                setState(() { _curIdx = _curIdx > 0 ? _curIdx - 1 : 0; });
+              },
+              icon: const Icon(Icons.delete),
+              tooltip: 'Удалить фотографию',
+            )
+          ]
       ),
       extendBodyBehindAppBar: true,
       body: GestureDetector(

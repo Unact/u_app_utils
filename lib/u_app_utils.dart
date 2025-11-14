@@ -17,4 +17,4 @@ export 'widgets/qr_dialog.dart';
 export 'widgets/refreshable.dart';
 export 'widgets/retryable_image.dart';
 export 'widgets/scan_view.dart';
-export 'widgets/sum_text_field.dart';
+export 'widgets/num_text_field.dart';

@@ -1,26 +1,37 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:keyboard_actions/keyboard_actions.dart';
 
 class NumTextField extends StatefulWidget {
+  final String? initialValue;
   final TextEditingController? controller;
   final TextStyle? style;
-  final bool decimal;
   final bool? enabled;
   final TextAlign textAlign;
   final TextAlignVertical? textAlignVertical;
   final InputDecoration? decoration;
-  final void Function()? onTap;
+  final List<TextInputFormatter>? inputFormatters;
+  final void Function(String)? onChanged;
+  final void Function(String)? onFieldSubmitted;
+  final TextInputType? keyboardType;
+  final int? maxLines;
 
   NumTextField({
     super.key,
+    this.initialValue,
     this.controller,
-    this.decimal = true,
     this.style,
     this.enabled,
     this.textAlign = TextAlign.end,
+    this.keyboardType = const TextInputType.numberWithOptions(decimal: true),
     this.textAlignVertical,
     this.decoration,
-    this.onTap
+    this.inputFormatters,
+    this.onChanged,
+    this.onFieldSubmitted,
+    this.maxLines
   });
 
   @override
@@ -28,10 +39,12 @@ class NumTextField extends StatefulWidget {
 }
 
 class _NumTextFieldState extends State<NumTextField> {
-  final FocusNode sumNode = FocusNode();
+  final FocusNode focusNode = FocusNode();
+  late final TextEditingController controller = widget.controller ?? TextEditingController(text: widget.initialValue);
 
   @override
   Widget build(BuildContext context) {
+
     return KeyboardActions(
       disableScroll: true,
       config: KeyboardActionsConfig(
@@ -40,25 +53,30 @@ class _NumTextFieldState extends State<NumTextField> {
           'Готово',
           style: TextStyle(fontSize: 16.0, fontWeight: FontWeight.w500),
         ),
-        actions: [
+        actions: Platform.isAndroid ? [] : [
           KeyboardActionsItem(
-            focusNode: sumNode,
-            onTapAction: () => sumNode.unfocus()
+            focusNode: focusNode,
+            onTapAction: () {
+              focusNode.unfocus();
+              widget.onFieldSubmitted?.call(controller.text);
+            }
           )
         ]
       ),
       child: TextFormField(
         textAlign: widget.textAlign,
         textAlignVertical: widget.textAlignVertical,
-        focusNode: sumNode,
-        keyboardType: TextInputType.numberWithOptions(decimal: widget.decimal),
-        controller: widget.controller,
+        focusNode: focusNode,
+        keyboardType: widget.keyboardType,
+        controller: controller,
         enabled: widget.enabled,
-        maxLines: 1,
+        maxLines: widget.maxLines,
         style: widget.style,
         decoration: widget.decoration,
-        onEditingComplete: () => sumNode.unfocus(),
-        onChanged: (_) => widget.onTap?.call()
+        inputFormatters: widget.inputFormatters,
+        onEditingComplete: () => focusNode.unfocus(),
+        onFieldSubmitted: widget.onFieldSubmitted,
+        onChanged: widget.onChanged
       )
     );
   }

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class Permissions {
@@ -26,6 +27,20 @@ class Permissions {
 
   static Future<bool> hasCameraPermissions() async {
     return (await Permission.camera.request()).isGranted;
+  }
+
+  static Future<bool> hasPhotosPermissions() async {
+    if (Platform.isAndroid) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+
+      if (androidInfo.version.sdkInt <= 32) {
+        return (await Permission.storage.request()).isGranted;
+      }
+    }
+
+    final request = await Permission.photos.request();
+
+    return request.isGranted || request.isLimited;
   }
 
   static Future<bool> hasLocationPermissions() async {
