@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
@@ -9,18 +10,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 base class RenewApi {
   static const String runBeforeKey = 'Api.hasRunBefore';
   static const String authSchema = 'Renew';
-  static const _kAccessTokenKey = 'accessToken';
-  static const _kRefreshTokenKey = 'refreshToken';
-  static const _kUrlKey = 'url';
+  static const String _kAccessTokenKey = 'accessToken';
+  static const String _kRefreshTokenKey = 'refreshToken';
+  static const Duration _kRefreshPeriod = Duration(minutes: 10);
   static const FlutterSecureStorage _storage = FlutterSecureStorage(
     aOptions: AndroidOptions(encryptedSharedPreferences: true, resetOnError: true)
   );
 
   final String _appName;
   final String _version;
+  final String _url;
   String _refreshToken;
-  String _url;
   String _accessToken;
+
+  Completer<Object?>? _refreshCompleter;
+  DateTime? _tokenSetTime;
 
   RenewApi._(
     this._url,
@@ -36,31 +40,26 @@ base class RenewApi {
 
     if (prefs.getBool(runBeforeKey) ?? false) return;
 
-    await _storage.delete(key: _kUrlKey);
     await _storage.delete(key: _kAccessTokenKey);
     await _storage.delete(key: _kRefreshTokenKey);
     await prefs.setBool(runBeforeKey, true);
   }
 
-  Future<void> _setApiData(String url, String accessToken, String refreshToken) async {
-    await _storage.write(key: _kUrlKey, value: url);
+  Future<void> _setApiData(String accessToken, String refreshToken) async {
     await _storage.write(key: _kAccessTokenKey, value: accessToken);
     await _storage.write(key: _kRefreshTokenKey, value: refreshToken);
 
-    _url = url;
     _accessToken = accessToken;
     _refreshToken = refreshToken;
+    _tokenSetTime = DateTime.now();
   }
 
-  static Future<RenewApi> init({
-    required String appName,
-    String? url
-  }) async {
+  static Future<RenewApi> init({required String appName, required String url}) async {
     await FkUserAgent.init();
     await _clearSecureStorageOnReinstall();
 
     return RenewApi._(
-      await _storage.read(key: _kUrlKey) ?? url ?? '',
+      url,
       await _storage.read(key: _kAccessTokenKey) ?? '',
       await _storage.read(key: _kRefreshTokenKey) ?? '',
       (await PackageInfo.fromPlatform()).version,
@@ -68,136 +67,89 @@ base class RenewApi {
     );
   }
 
-  bool get isLoggedIn => _url != '' && _accessToken != '';
+  bool get isLoggedIn => _accessToken != '';
 
-  Map<String, String> Function() get _accessGenerator =>
-    () => _accessToken.isEmpty ? {} : { 'Authorization': '$authSchema token=$_accessToken' };
-  Map<String, String> Function() get _refreshGenerator =>
-    () => _refreshToken.isEmpty ? {} : { 'Authorization': '$authSchema token=$_refreshToken' };
+  Future<void> login({required String login, required String password}) async {
+    await _setApiData('', '');
 
-  Future<void> login({
-    required String url,
-    required String login,
-    required String password
-  }) async {
-    await _setApiData(url, '', '');
+    final result = await _rawRequest(
+      'v2/authenticate',
+      'POST',
+      { 'Authorization': '$authSchema login=$login,password=$password' }
+    );
 
-    loginGenerator() => { 'Authorization': '$authSchema login=$login,password=$password' };
-    final result = await _request('v2/authenticate', 'POST', loginGenerator, authRefresh: false);
-
-    await _setApiData(url, result['access_token'], result['refresh_token']);
-  }
-
-  Future<void> refresh() async {
-    final result = await _request('v2/refresh', 'POST', _refreshGenerator, authRefresh: false);
-
-    await _setApiData(_url, result['access_token'], result['refresh_token']);
+    await _setApiData(result['access_token'], result['refresh_token']);
   }
 
   Future<void> logout() async {
-    await _setApiData('', '', '');
+    await _setApiData('', '');
   }
 
-  Future<void> resetPassword({
-    required String url,
-    required String login
-  }) async {
-    await _setApiData(url, '', '');
+  Future<void> register({required String email, required String telNum, required String password}) async {
+    await _setApiData('', '');
 
-    resetGenerator() => { 'Authorization': '$authSchema login=$login' };
-    await _request('v2/reset_password', 'POST', resetGenerator, authRefresh: false);
-  }
+    final result =  await _rawRequest(
+      'v2/register',
+      'POST',
+      { 'Authorization': authSchema },
+      null,
+      { 'email': email, 'tel_num': telNum, 'password': password }
+    );
 
-  Future<void> register({
-    required String url,
-    required String email,
-    required String telNum,
-    required String password
-  }) async {
-    await _setApiData(url, '', '');
-
-    resetGenerator() => { 'Authorization': authSchema };
-    generator() => { 'email': email, 'tel_num': telNum, 'password': password };
-
-    final result =  await _request('v2/register', 'POST', resetGenerator, authRefresh: false, dataGenerator: generator);
-
-    await _setApiData(url, result['access_token'], result['refresh_token']);
+    await _setApiData(result['access_token'], result['refresh_token']);
   }
 
   Future<void> unregister() async {
-    await _request('v2/unregister', 'POST', _accessGenerator, authRefresh: true);
+    await _rawRequest('v2/unregister', 'POST', { 'Authorization': '$authSchema token=$_accessToken' });
 
-    await _setApiData('', '', '');
+    await _setApiData('', '');
   }
 
-  Future<dynamic> get(
-    String apiMethod,
-    {
-      Map<String, dynamic>? queryParameters
-    }
-  ) async {
-    return _request(
-      apiMethod,
-      'GET',
-      _accessGenerator,
-      queryParameters: queryParameters,
-      authRefresh: true
-    );
+  Future<void> resetPassword({required String login}) async {
+    await _setApiData('', '');
+
+    await _rawRequest('v2/reset_password', 'POST', { 'Authorization': '$authSchema login=$login' });
   }
 
-  Future<dynamic> post(
-    String apiMethod,
-    {
-      Map<String, dynamic>? queryParameters,
-      Object? Function()? dataGenerator
-    }
-  ) async {
-    return _request(
-      apiMethod,
-      'POST',
-      _accessGenerator,
-      queryParameters: queryParameters,
-      dataGenerator: dataGenerator,
-      authRefresh: true
-    );
+  Future<dynamic> get(String apiMethod, {Map<String, dynamic>? query}) async {
+    await _refreshTokens();
+
+    return await _rawRequest(apiMethod, 'GET', { 'Authorization': '$authSchema token=$_accessToken' }, query);
   }
 
-  Future<dynamic> put(
-    String apiMethod,
-    {
-      Map<String, dynamic>? queryParameters,
-      Object? Function()? dataGenerator,
-      bool authRefresh = true
-    }
-  ) async {
-    return _request(
-      apiMethod,
-      'PUT',
-      _accessGenerator,
-      queryParameters: queryParameters,
-      dataGenerator: dataGenerator,
-      authRefresh: authRefresh
-    );
+  Future<dynamic> post(String apiMethod, {Map<String, dynamic>? query, Object? data}) async {
+    await _refreshTokens();
+
+    return await _rawRequest(apiMethod, 'POST', { 'Authorization': '$authSchema token=$_accessToken' }, query, data);
   }
 
-  Future<dynamic> _request(
-    String apiMethod,
-    String method,
-    Map<String, String> Function() authGenerator,
-    {
-      Map<String, dynamic>? queryParameters,
-      Object? Function()? dataGenerator,
-      bool authRefresh = true
+  Future<dynamic> put(String apiMethod, {Map<String, dynamic>? query, Object? data}) async {
+    await _refreshTokens();
+
+    return await _rawRequest(apiMethod, 'PUT', { 'Authorization': '$authSchema token=$_accessToken' }, query, data);
+  }
+
+  Future<void> _refreshTokens() async {
+    if (_tokenSetTime != null && DateTime.now().difference(_tokenSetTime!) < _kRefreshPeriod) return;
+
+    if (_refreshCompleter != null) {
+      final error = await _refreshCompleter!.future;
+
+      if (error != null) throw error;
+      return;
     }
-  ) async {
+
     try {
-      return await _rawRequest(apiMethod, method, authGenerator.call(), queryParameters, dataGenerator?.call());
-    } on AuthException {
-      if (!authRefresh) rethrow;
+      _refreshCompleter = Completer();
+      final result = await _rawRequest('v2/refresh', 'POST', { 'Authorization': '$authSchema token=$_refreshToken' });
 
-      await refresh();
-
-      return await _rawRequest(apiMethod, method, authGenerator.call(), queryParameters, dataGenerator?.call());
+      await _setApiData(result['access_token'], result['refresh_token']);
+      _refreshCompleter!.complete(null);
+    } catch(e) {
+      _refreshCompleter!.complete(e);
+      rethrow;
+    } finally {
+      _refreshCompleter = null;
     }
   }
 
@@ -205,35 +157,32 @@ base class RenewApi {
     String apiMethod,
     String method,
     Map<String, String> headers,
-    Map<String, dynamic>? queryParameters,
-    Object? data
+    [
+      Map<String, dynamic>? query,
+      Object? data
+    ]
   ) async {
-    final dio = _createDio(_url);
-    final options = Options(method: method, headers: headers);
-
-    try {
-      return (await dio.request(apiMethod, data: data, queryParameters: queryParameters, options: options)).data;
-    } on DioException catch(e) {
-      _onDioException(e);
-    }
-  }
-
-  Dio _createDio(String url) {
-    Map<String, dynamic> headers = {
+    Map<String, dynamic> baseHeaders = {
       'Accept': 'application/json',
       _appName: _version,
       HttpHeaders.userAgentHeader: '$_appName/$_version ${FkUserAgent.userAgent}',
     };
-
-    return Dio(BaseOptions(
-      baseUrl: url,
+    final dio = Dio(BaseOptions(
+      baseUrl: _url,
       connectTimeout: const Duration(minutes: 1),
       sendTimeout: const Duration(minutes: 10),
       receiveTimeout: const Duration(minutes: 10),
-      headers: headers,
+      headers: baseHeaders,
       contentType: Headers.jsonContentType,
       responseType: ResponseType.json,
     ));
+    final options = Options(method: method, headers: headers);
+
+    try {
+      return (await dio.request(apiMethod, data: data, queryParameters: query, options: options)).data;
+    } on DioException catch(e) {
+      _onDioException(e);
+    }
   }
 
   static void _onDioException(DioException e) {
