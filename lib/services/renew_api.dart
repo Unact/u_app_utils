@@ -14,7 +14,8 @@ base class RenewApi {
   static const String _kRefreshTokenKey = 'refreshToken';
   static const Duration _kRefreshPeriod = Duration(minutes: 10);
   static const FlutterSecureStorage _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true, resetOnError: true)
+    aOptions: AndroidOptions(),
+    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device)
   );
 
   final String _appName;

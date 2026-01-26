@@ -21,7 +21,7 @@ dependencies:
   flutter_cache_manager: ^3.4.1
   flutter_datawedge: ^3.2.0
   flutter_image_compress: ^2.4.0
-  flutter_secure_storage: ^9.2.4
+  flutter_secure_storage: ^10.0.0
   fk_user_agent:
     git:
       url: git@github.com:kennir/fk_user_agent.git

@@ -14,6 +14,7 @@ class Initialization {
     await SentryFlutter.init(
       (options) {
         options.dsn = dsn;
+        options.appHangTimeoutInterval = Duration(seconds: 4);
         options.attachScreenshot = true;
         options.beforeSend = (SentryEvent event, dynamic hint) async {
           if (isDebug) return null;

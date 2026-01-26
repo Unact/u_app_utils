@@ -8,6 +8,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:vibration/vibration.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:flutter_datawedge/flutter_datawedge.dart' as dw;
+import 'package:permission_handler/permission_handler.dart';
 
 import '../utils/permissions.dart';
 
@@ -104,6 +105,7 @@ class ScanViewState extends State<ScanView> {
 
   Future<void> setupBLEScanner() async {
     if (await FlutterBluePlus.isSupported == false) return;
+    if (await Permission.location.serviceStatus.isDisabled) return;
     if (await Permissions.hasBluetoothPermission() == false || await Permissions.hasLocationPermissions() == false) {
       return;
     }
