@@ -37,6 +37,7 @@ class ScanView extends StatefulWidget {
 }
 
 class ScanViewState extends State<ScanView> {
+  static final dw.FlutterDataWedge _kDataWedge = dw.FlutterDataWedge();
   final player = AudioPlayer();
   static final String _kCryptoSeparator = '\u001D';
   static final String _kBTScannerPrefix = 'SR5600';
@@ -100,7 +101,7 @@ class ScanViewState extends State<ScanView> {
   void setupDataWedgeScanner() {
     if (!Platform.isAndroid) return;
 
-    dataWedgeScanSubscription = dw.FlutterDataWedge().onScanResult.listen((res) => scanCode(res.data));
+    dataWedgeScanSubscription = _kDataWedge.onScanResult.listen((res) => scanCode(res.data));
   }
 
   Future<void> setupBLEScanner() async {
