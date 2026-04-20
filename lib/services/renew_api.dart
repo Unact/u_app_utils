@@ -70,13 +70,25 @@ base class RenewApi {
 
   bool get isLoggedIn => _accessToken != '';
 
-  Future<void> login({required String login, required String password}) async {
+  Future<void> loginWithCredentials({required String login, required String password}) async {
     await _setApiData('', '');
 
     final result = await _rawRequest(
       'v2/authenticate',
       'POST',
       { 'Authorization': '$authSchema login=$login,password=$password' }
+    );
+
+    await _setApiData(result['access_token'], result['refresh_token']);
+  }
+
+  Future<void> loginWithUserToken({required String userToken}) async {
+    await _setApiData('', '');
+
+    final result = await _rawRequest(
+      'v2/authenticate',
+      'POST',
+      { 'Authorization': '$authSchema user_token=$userToken' }
     );
 
     await _setApiData(result['access_token'], result['refresh_token']);
