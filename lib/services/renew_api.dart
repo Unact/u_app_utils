@@ -142,6 +142,12 @@ base class RenewApi {
     return await _rawRequest(apiMethod, 'PUT', { 'Authorization': '$authSchema token=$_accessToken' }, query, data);
   }
 
+  Future<dynamic> delete(String apiMethod, {Map<String, dynamic>? query}) async {
+    await _refreshTokens();
+
+    return await _rawRequest(apiMethod, 'DELETE', { 'Authorization': '$authSchema token=$_accessToken' }, query);
+  }
+
   Future<void> _refreshTokens() async {
     if (_tokenSetTime != null && DateTime.now().difference(_tokenSetTime!) < _kRefreshPeriod) return;
 

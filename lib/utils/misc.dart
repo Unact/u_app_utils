@@ -29,6 +29,7 @@ class Misc {
 
   static void logError(dynamic error, StackTrace? stackTrace) {
     debugPrint(error.toString());
+    if (stackTrace != null) debugPrint(stackTrace.toString());
   }
 
   static Future<void> reportError(dynamic error, StackTrace? stackTrace) async {
