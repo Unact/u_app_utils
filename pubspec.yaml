@@ -28,7 +28,7 @@ dependencies:
       ref: '6068ac8'
   intl: ^0.20.2
   keyboard_actions: ^4.2.0
-  mobile_scanner: ^7.0.1
+  mobile_scanner: ^7.4.0
   package_info_plus: ^8.1.3
   path: ^1.9.0
   path_provider: ^2.1.5
